@@ -114,7 +114,7 @@ export function BeforeAfter() {
       after.height = h;
     }
 
-    const ctx = before.getContext('2d');
+    const ctx = before.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
     const aCtx = after.getContext('2d');

@@ -290,7 +290,7 @@ export function PixelConverter({
     const srcCanvas = sourceCanvasRef.current;
     srcCanvas.width = w;
     srcCanvas.height = h;
-    const srcCtx = srcCanvas.getContext('2d');
+    const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
     if (!srcCtx) return;
     srcCtx.drawImage(image, 0, 0, w, h);
     let workerSource: ImageData;
@@ -309,7 +309,7 @@ export function PixelConverter({
       const gridCanvas = document.createElement('canvas');
       gridCanvas.width = gridColumns;
       gridCanvas.height = gridRows;
-      const gridCtx = gridCanvas.getContext('2d');
+      const gridCtx = gridCanvas.getContext('2d', { willReadFrequently: true });
       if (!gridCtx) return;
       gridCtx.imageSmoothingEnabled = true;
       gridCtx.imageSmoothingQuality = 'high';
@@ -511,7 +511,7 @@ export function PixelConverter({
         const sourceCanvas = document.createElement('canvas');
         sourceCanvas.width = width;
         sourceCanvas.height = height;
-        const sourceCtx = sourceCanvas.getContext('2d');
+        const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
         if (!sourceCtx) continue;
         sourceCtx.imageSmoothingEnabled = true;
         sourceCtx.imageSmoothingQuality = 'high';
