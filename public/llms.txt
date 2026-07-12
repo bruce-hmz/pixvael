@@ -1,0 +1,26 @@
+# Pixvael
+
+Image to pixel art converter. Free, private, runs entirely in the browser.
+
+## Pages
+- / : Image to pixel art (main converter)
+- /minecraft-pixel-art : section-based build planner with progress tracking
+- /image-to-minecraft-pixel-art : fast image-to-block conversion workflow
+- /minecraft-pixel-art-maker : editable block painter with undo, redo, and restore
+- /minecraft-pixel-art-converter : side-by-side 24/32/48/64 block comparison
+
+## About
+Pixvael converts images to pixel art using Canvas color quantization:
+downsample each block of pixels into one color, optionally map to a limited
+palette (Game Boy 4-color, 8-bit PICO-8, or full color), with optional
+Floyd-Steinberg dithering. Pure frontend, no AI API, no image upload —
+photos never leave the user's device.
+
+## Use cases
+Minecraft pixel art, avatars, wallpapers, perler bead patterns, game sprites,
+posters and prints.
+
+## Minecraft outputs
+The planner exports a pixel PNG, coordinate blueprint PNG, per-zone blueprint,
+and material CSV. The maker updates every export after block edits. All build
+progress and maker edits are stored locally in the browser.
