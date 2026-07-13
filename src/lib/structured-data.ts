@@ -46,3 +46,16 @@ export function buildBreadcrumbSchema(items: { name: string; url: string }[]) {
     })),
   };
 }
+
+export function buildOrganizationSchema(options?: {
+  url?: string;
+  logo?: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Pixvael',
+    url: options?.url ?? 'https://pixvael.com',
+    logo: options?.logo ?? 'https://pixvael.com/hero-portrait-v2.jpg',
+  };
+}

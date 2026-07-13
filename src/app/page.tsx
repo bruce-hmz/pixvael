@@ -3,7 +3,7 @@ import { BeforeAfter } from '@/components/BeforeAfter';
 import { PixelConverter } from '@/components/PixelConverter';
 import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
-import { buildWebAppSchema, buildFaqSchema } from '@/lib/structured-data';
+import { buildWebAppSchema, buildFaqSchema, buildOrganizationSchema } from '@/lib/structured-data';
 
 export const metadata: Metadata = {
   alternates: { canonical: 'https://pixvael.com' },
@@ -94,6 +94,8 @@ export default function Home() {
               className="grid min-w-0 grid-cols-[80px_minmax(0,1fr)] gap-4 border-t border-[var(--line)] px-4 py-4 sm:grid-cols-[104px_minmax(0,1fr)] sm:px-6 md:border-l md:first:border-l-0"
             >
               <div
+                role="img"
+                aria-label={`${item.title} pixel art example`}
                 className="relative aspect-square overflow-hidden border border-[var(--line-bright)] bg-[#050711] bg-cover bg-center"
                 style={{ backgroundImage: `url(${item.image})` }}
               >
@@ -156,6 +158,7 @@ export default function Home() {
 
       <FaqSection faqs={faqs} />
 
+      <JsonLd data={buildOrganizationSchema()} />
       <JsonLd data={buildWebAppSchema()} />
       <JsonLd data={buildFaqSchema(faqs)} />
     </div>
