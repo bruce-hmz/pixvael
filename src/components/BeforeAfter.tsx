@@ -9,13 +9,13 @@ const MAX_SPLIT = 100;
 const EDGE_SNAP = 3;
 const HERO_CASES = [
   {
-    src: '/hero-portrait-v2.jpg',
+    src: '/hero-portrait-v2.webp',
     label: 'editorial portrait',
     tabLabel: 'Portrait',
   },
-  { src: '/hero-cat.jpg', label: 'cat avatar', tabLabel: 'Pet' },
-  { src: '/hero-character.jpg', label: 'game character', tabLabel: 'Game' },
-  { src: '/hero-minecraft.jpg', label: 'minecraft scene', tabLabel: 'World' },
+  { src: '/hero-cat.webp', label: 'cat avatar', tabLabel: 'Pet' },
+  { src: '/hero-character.webp', label: 'game character', tabLabel: 'Game' },
+  { src: '/hero-minecraft.webp', label: 'minecraft scene', tabLabel: 'World' },
 ];
 const HERO_WIDTH = 1120;
 const HERO_HEIGHT = 630;

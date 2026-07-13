@@ -32,19 +32,19 @@ const showcaseCases = [
     label: 'pet',
     title: 'Pet avatar',
     body: 'Turn a favorite pet into a pixel profile.',
-    image: '/hero-cat.jpg',
+    image: '/hero-cat.webp',
   },
   {
     label: 'game',
     title: 'Game character',
     body: 'Create retro-style avatars and sprites.',
-    image: '/hero-character.jpg',
+    image: '/hero-character.webp',
   },
   {
     label: 'minecraft',
     title: 'Minecraft world',
     body: 'Convert scenes into block-inspired art.',
-    image: '/hero-minecraft.jpg',
+    image: '/hero-minecraft.webp',
   },
 ];
 
