@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { pixelize } from '@/lib/pixelize';
 import { getPalette } from '@/lib/palettes';
 
-const MIN_SPLIT = 8;
-const MAX_SPLIT = 92;
+const MIN_SPLIT = 0;
+const MAX_SPLIT = 100;
+const EDGE_SNAP = 3;
 const HERO_CASES = [
   {
     src: '/hero-portrait-v2.jpg',
@@ -21,7 +22,10 @@ const HERO_HEIGHT = 630;
 const HERO_PIXEL_SIZE = 12;
 
 function clampSplit(value: number) {
-  return Math.min(MAX_SPLIT, Math.max(MIN_SPLIT, value));
+  const clamped = Math.min(MAX_SPLIT, Math.max(MIN_SPLIT, value));
+  if (clamped <= EDGE_SNAP) return MIN_SPLIT;
+  if (clamped >= MAX_SPLIT - EDGE_SNAP) return MAX_SPLIT;
+  return clamped;
 }
 
 function drawHeroImage(
@@ -203,10 +207,16 @@ export function BeforeAfter() {
         />
 
         <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between border-b border-[var(--line)] bg-black/55 px-4 py-3">
-          <span className="font-mono text-sm text-[var(--pixel-lime)]">
+          <span
+            className="font-mono text-sm text-[var(--pixel-lime)] transition-opacity"
+            style={{ opacity: split < 8 ? 0 : 1 }}
+          >
             Original
           </span>
-          <span className="font-mono text-sm text-[var(--pixel-lime)]">
+          <span
+            className="font-mono text-sm text-[var(--pixel-lime)] transition-opacity"
+            style={{ opacity: split > 92 ? 0 : 1 }}
+          >
             Pixel Art
           </span>
         </div>
@@ -217,7 +227,13 @@ export function BeforeAfter() {
         />
 
         <div
-          className={`absolute top-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-[var(--line-bright)] bg-[rgba(10,10,12,0.92)] font-mono text-xl text-[var(--pixel-lime)] shadow-[0_0_24px_rgba(51,255,51,0.34)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pixel-lime)] ${
+          className={`absolute top-1/2 flex size-14 -translate-y-1/2 items-center justify-center border border-[var(--line-bright)] bg-[rgba(10,10,12,0.92)] font-mono text-xl text-[var(--pixel-lime)] shadow-[0_0_24px_rgba(51,255,51,0.34)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pixel-lime)] ${
+            split === MIN_SPLIT
+              ? 'translate-x-0'
+              : split === MAX_SPLIT
+                ? '-translate-x-full'
+                : '-translate-x-1/2'
+          } ${
             isDragging ? 'scale-105 cursor-grabbing' : 'cursor-grab'
           }`}
           role="slider"
