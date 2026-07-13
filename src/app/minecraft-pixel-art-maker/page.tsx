@@ -55,6 +55,39 @@ export default function MinecraftPixelArtMakerPage() {
       facts={['block painter', '20 materials', 'local export']}
       faqs={faqs}
     >
+      <section className="pixel-panel mt-16 p-6 sm:p-8">
+        <p className="terminal-label">when to use</p>
+        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+          When to edit blocks instead of starting over
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Generated Minecraft pixel art gets you most of the way there, but the
+          last stretch — a misread eye, a block that should be sandstone instead
+          of concrete, a stray color at an edge — is where a one-shot converter
+          gives up. The maker is for that last stretch. After the automatic
+          conversion, paint individual cells with real Minecraft block colors,
+          pick a color from an existing cell, restore the generated color if you
+          change your mind, and undo or redo any step. Every edit updates the
+          material counts, the PNG, the CSV, and the blueprint, so what you see
+          is exactly what you will build. Use the maker when a converted image
+          is close but not right: fixing a face, swapping a few blocks for
+          materials you actually have, or cleaning up an edge. For a no-edit
+          conversion, use the{' '}
+          <a href="/image-to-minecraft-pixel-art" className="text-[var(--pixel-lime)] underline">
+            image-to-Minecraft converter
+          </a>
+          ; for large multi-section builds, the{' '}
+          <a href="/minecraft-pixel-art" className="text-[var(--pixel-lime)] underline">
+            build planner
+          </a>
+          ; to compare sizes first, the{' '}
+          <a href="/minecraft-pixel-art-converter" className="text-[var(--pixel-lime)] underline">
+            size converter
+          </a>
+          .
+        </p>
+      </section>
+
       <InfoGrid
         items={[
           {

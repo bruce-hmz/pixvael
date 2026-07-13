@@ -70,6 +70,36 @@ export default function ImageToMinecraftPixelArtPage() {
         </p>
       </section>
 
+      <section className="pixel-panel mt-8 p-6 sm:p-8">
+        <p className="terminal-label">when to use</p>
+        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+          When speed matters more than editing
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          This page is the fastest path from image to Minecraft blocks: drop a
+          file, pick a width, and you get a block grid plus material CSV in
+          under a second. It is the right tool when you want to see whether an
+          image is worth building before you commit — try a pet photo, a logo,
+          or a character portrait at 32 or 48 blocks wide, and the result tells
+          you immediately if the silhouette holds up. There is no block editing
+          here; the output is a reference PNG and a material list you rebuild by
+          hand. If your build is large enough to need sections and progress
+          tracking, switch to the{' '}
+          <a href="/minecraft-pixel-art" className="text-[var(--pixel-lime)] underline">
+            build planner
+          </a>
+          . If you want to fix individual blocks after conversion, use the{' '}
+          <a href="/minecraft-pixel-art-maker" className="text-[var(--pixel-lime)] underline">
+            maker
+          </a>
+          . If you are torn between 24, 32, 48, and 64 blocks wide, the{' '}
+          <a href="/minecraft-pixel-art-converter" className="text-[var(--pixel-lime)] underline">
+            size converter
+          </a>{' '}
+          shows all four side by side.
+        </p>
+      </section>
+
       <InfoGrid
         items={[
           {

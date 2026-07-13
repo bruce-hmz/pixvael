@@ -87,6 +87,45 @@ export default function MinecraftPixelArtPage() {
             preserve more detail and increase the material count.
           </p>
         </section>
+
+        <section className="pixel-panel mt-8 p-6 sm:p-8">
+          <p className="terminal-label">when to use</p>
+          <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+            When the build planner beats a one-shot converter
+          </h2>
+          <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+            Most Minecraft pixel art converters stop at one image and one grid
+            size. The build planner here splits a large build into sections you
+            tackle one at a time, tracks progress as you place blocks, and keeps
+            a running material count per zone. That matters for big builds — a
+            96-wide mural is hundreds of blocks and dozens of material types,
+            and building it from a single flat PNG leads to mistakes and
+            shortages. Use this planner for anything larger than a 32-wide logo:
+            survival base facades, server spawn art, multi-panel walls, event
+            banners. For a single quick conversion, use the{' '}
+            <a
+              href="/image-to-minecraft-pixel-art"
+              className="text-[var(--pixel-lime)] underline"
+            >
+              image-to-Minecraft converter
+            </a>
+            ; to edit blocks after conversion, use the{' '}
+            <a
+              href="/minecraft-pixel-art-maker"
+              className="text-[var(--pixel-lime)] underline"
+            >
+              maker
+            </a>
+            ; to compare four sizes at once, use the{' '}
+            <a
+              href="/minecraft-pixel-art-converter"
+              className="text-[var(--pixel-lime)] underline"
+            >
+              size converter
+            </a>
+            .
+          </p>
+        </section>
       </PixelLanding>
       <JsonLd data={buildFaqSchema(faqs)} />
       <JsonLd

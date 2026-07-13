@@ -73,6 +73,39 @@ export default function MinecraftPixelArtConverterPage() {
         </p>
       </section>
 
+      <section className="pixel-panel mt-8 p-6 sm:p-8">
+        <p className="terminal-label">when to use</p>
+        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+          When you are unsure which size to build
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Picking a build width blind is the most common reason a Minecraft
+          pixel art project stalls: too small and the face is unrecognizable,
+          too large and the material list becomes unmanageable. The size
+          converter solves that by rendering four widths — 24, 32, 48, and 64
+          blocks — from the same image at the same time, each with its exact
+          dimensions, total block count, and material count. You see the
+          tradeoff between detail and build effort before you commit. Once a
+          variant looks right, select it and the main planner, exports, and
+          material list all switch to that size. Use this converter when you are
+          deciding the scope of a build: a 24-wide icon, a 32-wide logo, a
+          48-wide portrait, or a 64-wide scene. For a single fast conversion at
+          one size, use the{' '}
+          <a href="/image-to-minecraft-pixel-art" className="text-[var(--pixel-lime)] underline">
+            image-to-Minecraft converter
+          </a>
+          ; to edit blocks, the{' '}
+          <a href="/minecraft-pixel-art-maker" className="text-[var(--pixel-lime)] underline">
+            maker
+          </a>
+          ; for large sectioned builds, the{' '}
+          <a href="/minecraft-pixel-art" className="text-[var(--pixel-lime)] underline">
+            build planner
+          </a>
+          .
+        </p>
+      </section>
+
       <InfoGrid
         items={[
           {
