@@ -1,8 +1,13 @@
+import type { Metadata } from 'next';
 import { BeforeAfter } from '@/components/BeforeAfter';
 import { PixelConverter } from '@/components/PixelConverter';
 import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
 import { buildWebAppSchema, buildFaqSchema } from '@/lib/structured-data';
+
+export const metadata: Metadata = {
+  alternates: { canonical: 'https://pixvael.com' },
+};
 
 const faqs = [
   {
@@ -53,7 +58,7 @@ export default function Home() {
           <div>
             <p className="terminal-label">/ image to pixel art</p>
             <h1 className="crt-title mt-5 max-w-[320px] break-words text-[3rem] leading-[1.03] sm:max-w-5xl sm:text-[clamp(3.2rem,6vw,5.6rem)]">
-              <span className="block text-[var(--paper)] [text-shadow:none]">Turn any</span>
+              <span className="block text-[var(--paper)] [text-shadow:none]">Turn any </span>
               <span className="block text-[var(--paper)] [text-shadow:none] sm:inline">image to </span>
               <span className="block text-[var(--pixel-lime)] sm:inline">pixel art</span>
             </h1>
