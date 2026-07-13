@@ -10,7 +10,7 @@ const ROUTES = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://pixvael.com';
-  const lastModified = new Date('2026-07-09');
+  const lastModified = new Date();
   return ROUTES.map((r) => ({
     url: `${base}${r}`,
     lastModified,
