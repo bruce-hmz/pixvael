@@ -1,9 +1,19 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
+import ReactDOM from 'react-dom';
 import { BeforeAfter } from '@/components/BeforeAfter';
-import { PixelConverter } from '@/components/PixelConverter';
 import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
 import { buildWebAppSchema, buildFaqSchema, buildOrganizationSchema } from '@/lib/structured-data';
+
+// 首屏交互工具懒加载:PixelConverter 是 76KB/1991 行的 client 组件,在 hero 下方,
+// 不在首屏视觉区。next/dynamic 把它代码分割到独立 chunk,移出首屏关键 JS 以改善 FCP/TBT
+const PixelConverter = dynamic(
+  () => import('@/components/PixelConverter').then((m) => m.PixelConverter),
+  {
+    loading: () => <div className="min-h-[480px] animate-pulse" aria-hidden="true" />,
+  },
+);
 
 export const metadata: Metadata = {
   alternates: { canonical: 'https://pixvael.com' },
@@ -49,6 +59,13 @@ const showcaseCases = [
 ];
 
 export default function Home() {
+  // 提前并行下载首屏 hero 图:BeforeAfter 是 client canvas,默认显示 hero-portrait-v2.webp。
+  // 不 preload 的话浏览器要等 JS 执行完才发现要下载,是 LCP 4.7s 的主因
+  ReactDOM.preload('/hero-portrait-v2.webp', {
+    as: 'image',
+    fetchPriority: 'high',
+  });
+
   return (
     <div className="page-shell">
       <section className="rail-frame">
