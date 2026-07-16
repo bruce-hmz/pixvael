@@ -182,6 +182,62 @@ export default function Home() {
         ]}
       />
 
+      <section className="mt-16">
+        <p className="terminal-label">styles explained</p>
+        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
+          Pixel Art Styles Explained
+        </h2>
+        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+          The same photo becomes three very different pieces of pixel art
+          depending on the palette you choose. Here is what each style does to
+          your image and when to reach for it.
+        </p>
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          <div className="pixel-panel-raised p-6">
+            <h3 className="text-lg font-black text-[var(--paper)]">Full Color</h3>
+            <p className="mt-3 leading-7 text-[var(--paper-muted)]">
+              Full color keeps every original hue and only downsamples the
+              resolution. The result reads as the same photo, just rebuilt from
+              larger, blockier pixels. It is the safest starting point for
+              realistic portraits, product shots, and any image where color
+              accuracy matters. Because no palette is enforced, gradients and
+              skin tones survive intact — you simply choose how coarse the pixel
+              grid is, and the converter handles the rest.
+            </p>
+          </div>
+          <div className="pixel-panel-raised p-6">
+            <h3 className="text-lg font-black text-[var(--paper)]">Retro 8-Bit</h3>
+            <p className="mt-3 leading-7 text-[var(--paper-muted)]">
+              The retro palette snaps every block to a fixed 16-color PICO-8-style
+              set, echoing the NES and classic home computers of the 1980s.
+              Colors flatten and saturate, giving sprites and characters an
+              authentic 8-bit look straight out of a cartridge. Pair it with
+              dithering to recover the shading that such a limited palette would
+              otherwise lose, so faces and rounded shapes still read at small
+              sizes.
+            </p>
+          </div>
+          <div className="pixel-panel-raised p-6">
+            <h3 className="text-lg font-black text-[var(--paper)]">Game Boy</h3>
+            <p className="mt-3 leading-7 text-[var(--paper-muted)]">
+              The Game Boy palette compresses the entire image into just four
+              shades of green, the same hard constraint the original 1989
+              handheld used. Fine detail gives way to mood and silhouette, which
+              is exactly the appeal. Photos with strong contrast and clear shapes
+              convert best, while busy scenes turn into atmospheric monochrome
+              pixel art popular for nostalgic avatars and tribute artwork.
+            </p>
+          </div>
+        </div>
+        <p className="mt-6 max-w-4xl leading-7 text-[var(--paper-muted)]">
+          Not sure which to pick? Start with full color to see how the pixel
+          grid reads, then switch to retro or Game Boy once you know the
+          composition works. Every palette is a one-click change and the preview
+          updates instantly, so you can compare styles side by side before you
+          export.
+        </p>
+      </section>
+
       <section className="pixel-panel mt-16 p-6 sm:p-8">
         <p className="terminal-label">how it works</p>
         <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
