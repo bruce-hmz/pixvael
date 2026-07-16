@@ -124,12 +124,8 @@ export function BeforeAfter() {
     const aCtx = after.getContext('2d');
     if (!aCtx) return;
 
-    if (needsCanvasSetup) {
-      ctx.fillStyle = '#050711';
-      ctx.fillRect(0, 0, w, h);
-      aCtx.fillStyle = '#050711';
-      aCtx.fillRect(0, 0, w, h);
-    }
+    // 不预填深色背景:canvas 保持透明,让下层 SSR <img> 在 hydrate 前作为首屏 LCP 可见。
+    // drawHeroImage 在 onload 时 clearRect + drawImage 会整块覆盖。
 
     let cancelled = false;
     setIsCaseLoading(true);
@@ -191,6 +187,15 @@ export function BeforeAfter() {
         onPointerCancel={() => setIsDragging(false)}
         style={{ '--split': `${split}%` } as React.CSSProperties}
       >
+        {/* SSR 静态图:首屏 LCP 元素,HTML 解析即显示,不再等 JS canvas 绘制完成。
+            canvas onload 绘制后会覆盖它;CSS filter 预匹配 canvas 的调色,减少切换跳变 */}
+        <img
+          src={HERO_CASES[0].src}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 size-full object-cover"
+          style={{ filter: 'contrast(1.08) saturate(1.12) brightness(1.02)' }}
+        />
         <canvas
           ref={beforeRef}
           className="absolute inset-0 size-full"
