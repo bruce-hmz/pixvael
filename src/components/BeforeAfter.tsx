@@ -100,6 +100,7 @@ export function BeforeAfter() {
           sizes={active.srcSet ? '(max-width: 640px) 360px, 1080px' : undefined}
           alt=""
           aria-hidden="true"
+          draggable={false}
           className="absolute inset-0 size-full object-cover"
           style={{ filter: 'contrast(1.08) saturate(1.12) brightness(1.02)' }}
         />
@@ -109,6 +110,7 @@ export function BeforeAfter() {
           src={active.pixelSrc}
           alt=""
           aria-hidden="true"
+          draggable={false}
           className="absolute inset-0 size-full object-cover"
           style={{
             clipPath: 'inset(0 0 0 var(--split))',
