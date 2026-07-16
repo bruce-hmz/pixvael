@@ -1,44 +1,24 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { pixelize } from '@/lib/pixelize';
+import { getPalette } from '@/lib/palettes';
 
 const MIN_SPLIT = 0;
 const MAX_SPLIT = 100;
 const EDGE_SNAP = 3;
-
-// 首屏 case(portrait)原图用响应式 srcSet(640/960/1280/1600w),手机端按显示尺寸下载省字节;
-// 其余 case 切换时才加载,单尺寸即可。pixelSrc 是构建时预生成的像素化图(见 scripts/gen-hero-pixel.ts)。
 const HERO_CASES = [
   {
     src: '/hero-portrait-v2.avif',
-    pixelSrc: '/hero-portrait-v2-pixel.avif',
-    srcSet:
-      '/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w',
     label: 'editorial portrait',
     tabLabel: 'Portrait',
   },
-  {
-    src: '/hero-cat.webp',
-    pixelSrc: '/hero-cat-pixel.avif',
-    srcSet: '',
-    label: 'cat avatar',
-    tabLabel: 'Pet',
-  },
-  {
-    src: '/hero-character.webp',
-    pixelSrc: '/hero-character-pixel.avif',
-    srcSet: '',
-    label: 'game character',
-    tabLabel: 'Game',
-  },
-  {
-    src: '/hero-minecraft.webp',
-    pixelSrc: '/hero-minecraft-pixel.avif',
-    srcSet: '',
-    label: 'minecraft scene',
-    tabLabel: 'World',
-  },
+  { src: '/hero-cat.webp', label: 'cat avatar', tabLabel: 'Pet' },
+  { src: '/hero-character.webp', label: 'game character', tabLabel: 'Game' },
+  { src: '/hero-minecraft.webp', label: 'minecraft scene', tabLabel: 'World' },
 ];
+const HERO_WIDTH = 1120;
+const HERO_HEIGHT = 630;
 const HERO_PIXEL_SIZE = 12;
 
 function clampSplit(value: number) {
@@ -48,11 +28,63 @@ function clampSplit(value: number) {
   return clamped;
 }
 
+function drawHeroImage(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+) {
+  const w = HERO_WIDTH;
+  const h = HERO_HEIGHT;
+  const sourceRatio = image.naturalWidth / image.naturalHeight;
+  const targetRatio = w / h;
+  const cropWidth =
+    sourceRatio > targetRatio
+      ? image.naturalHeight * targetRatio
+      : image.naturalWidth;
+  const cropHeight =
+    sourceRatio > targetRatio
+      ? image.naturalHeight
+      : image.naturalWidth / targetRatio;
+  const cropX = (image.naturalWidth - cropWidth) / 2;
+  const cropY = (image.naturalHeight - cropHeight) / 2;
+  ctx.clearRect(0, 0, w, h);
+  ctx.filter = 'contrast(1.08) saturate(1.12) brightness(1.02)';
+  ctx.drawImage(
+    image,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    w,
+    h,
+  );
+  ctx.filter = 'none';
+
+  const sideLight = ctx.createLinearGradient(0, 0, w, 0);
+  sideLight.addColorStop(0, 'rgba(255, 157, 0, 0.12)');
+  sideLight.addColorStop(0.42, 'rgba(0, 255, 255, 0.02)');
+  sideLight.addColorStop(1, 'rgba(255, 92, 122, 0.16)');
+  ctx.fillStyle = sideLight;
+  ctx.fillRect(0, 0, w, h);
+
+  const focus = ctx.createRadialGradient(600, 218, 120, 600, 218, 610);
+  focus.addColorStop(0, 'rgba(255, 255, 255, 0.02)');
+  focus.addColorStop(0.54, 'rgba(0, 0, 0, 0)');
+  focus.addColorStop(1, 'rgba(0, 0, 0, 0.34)');
+  ctx.fillStyle = focus;
+  ctx.fillRect(0, 0, w, h);
+}
+
 export function BeforeAfter() {
+  const beforeRef = useRef<HTMLCanvasElement>(null);
+  const afterRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const [split, setSplit] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [activeCase, setActiveCase] = useState(0);
+  const [isCaseLoading, setIsCaseLoading] = useState(true);
+  const [caseError, setCaseError] = useState<string | null>(null);
 
   const updateSplit = useCallback((clientX: number) => {
     const frame = frameRef.current;
@@ -66,7 +98,70 @@ export function BeforeAfter() {
     setSplit((current) => clampSplit(current + amount));
   }, []);
 
-  const active = HERO_CASES[activeCase];
+  useEffect(() => {
+    const before = beforeRef.current;
+    const after = afterRef.current;
+    if (!before || !after) return;
+
+    const w = HERO_WIDTH;
+    const h = HERO_HEIGHT;
+    const needsCanvasSetup =
+      before.width !== w ||
+      before.height !== h ||
+      after.width !== w ||
+      after.height !== h;
+
+    if (needsCanvasSetup) {
+      before.width = w;
+      before.height = h;
+      after.width = w;
+      after.height = h;
+    }
+
+    const ctx = before.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    const aCtx = after.getContext('2d');
+    if (!aCtx) return;
+
+    // 不预填深色背景:canvas 保持透明,让下层 SSR <img> 在 hydrate 前作为首屏 LCP 可见。
+    // drawHeroImage 在 onload 时 clearRect + drawImage 会整块覆盖。
+
+    let cancelled = false;
+    setIsCaseLoading(true);
+    setCaseError(null);
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      drawHeroImage(ctx, image);
+
+      const sourceData = ctx.getImageData(0, 0, w, h);
+      const result = pixelize(sourceData, {
+        pixelSize: HERO_PIXEL_SIZE,
+        palette: getPalette('full'),
+        dither: false,
+      });
+
+      const tmp = document.createElement('canvas');
+      tmp.width = result.width;
+      tmp.height = result.height;
+      tmp.getContext('2d')?.putImageData(result, 0, 0);
+      aCtx.clearRect(0, 0, w, h);
+      aCtx.imageSmoothingEnabled = false;
+      aCtx.drawImage(tmp, 0, 0, w, h);
+      setIsCaseLoading(false);
+    };
+    image.onerror = () => {
+      if (cancelled) return;
+      setIsCaseLoading(false);
+      setCaseError(`Unable to load ${HERO_CASES[activeCase].label}.`);
+    };
+    image.src = HERO_CASES[activeCase].src;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCase]);
 
   return (
     <div className="pixel-panel relative w-full max-w-[358px] overflow-hidden sm:max-w-full">
@@ -92,30 +187,30 @@ export function BeforeAfter() {
         onPointerCancel={() => setIsDragging(false)}
         style={{ '--split': `${split}%` } as React.CSSProperties}
       >
-        {/* before: 原图。SSR 静态 img = 首屏 LCP 元素,HTML 解析即显示。
-            CSS filter 复刻原 canvas 的 contrast/saturate/brightness 调色 */}
+        {/* SSR 静态图:首屏 LCP 元素,HTML 解析即显示,不再等 JS canvas 绘制完成。
+            canvas onload 绘制后会覆盖它;CSS filter 预匹配 canvas 的调色,减少切换跳变 */}
         <img
-          src={active.src}
-          srcSet={active.srcSet || undefined}
-          sizes={active.srcSet ? '(max-width: 640px) 360px, 1080px' : undefined}
+          src={HERO_CASES[0].src}
+          srcSet="/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w"
+          sizes="(max-width: 640px) 360px, 1080px"
           alt=""
           aria-hidden="true"
-          draggable={false}
           className="absolute inset-0 size-full object-cover"
           style={{ filter: 'contrast(1.08) saturate(1.12) brightness(1.02)' }}
         />
-        {/* after: 构建时预生成的像素化图(94x53 放大到全幅,image-rendering pixelated 保留块状)。
-            clipPath 右半跟随 split。无运行时 canvas/pixelize,彻底消除 LCP 的 JS 绘制链路 */}
-        <img
-          src={active.pixelSrc}
-          alt=""
+        <canvas
+          ref={beforeRef}
+          className="absolute inset-0 size-full"
           aria-hidden="true"
-          draggable={false}
-          className="absolute inset-0 size-full object-cover"
+        />
+        <canvas
+          ref={afterRef}
+          className="absolute inset-0 size-full"
           style={{
             clipPath: 'inset(0 0 0 var(--split))',
             imageRendering: 'pixelated',
           }}
+          aria-hidden="true"
         />
 
         <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between border-b border-[var(--line)] bg-black/55 px-4 py-3">
@@ -177,10 +272,19 @@ export function BeforeAfter() {
         >
           &lt;&gt;
         </div>
+
+        {caseError && (
+          <p
+            role="alert"
+            className="absolute inset-x-4 bottom-4 border border-[var(--pixel-rose)] bg-black/90 px-3 py-2 font-mono text-xs text-[var(--paper)]"
+          >
+            {caseError}
+          </p>
+        )}
       </div>
       <div className="flex items-center justify-between border-t border-[var(--line)] bg-black/45 px-4 py-3 font-mono text-xs uppercase text-[var(--paper-muted)]">
-        <span>{active.label}</span>
-        <span>{HERO_PIXEL_SIZE}px blocks</span>
+        <span>{HERO_CASES[activeCase].label}</span>
+        <span>{isCaseLoading ? 'rendering...' : `${HERO_PIXEL_SIZE}px blocks`}</span>
         <span>pixel.png</span>
       </div>
       <div
