@@ -194,6 +194,8 @@ export function BeforeAfter() {
           srcSet="/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w"
           sizes="(max-width: 640px) 360px, 1080px"
           alt=""
+          width={1120}
+          height={630}
           aria-hidden="true"
           className="absolute inset-0 size-full object-cover"
           style={{ filter: 'contrast(1.08) saturate(1.12) brightness(1.02)' }}

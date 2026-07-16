@@ -122,14 +122,20 @@ export function InfoGrid({ items }: { items: InfoCard[] }) {
   );
 }
 
-export function FaqSection({ faqs }: { faqs: FaqItem[] }) {
+export function FaqSection({
+  faqs,
+  faqTitle = 'Quick answers',
+}: {
+  faqs: FaqItem[];
+  faqTitle?: string;
+}) {
   return (
     <section className="mt-16">
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="terminal-label">faqs</p>
           <h2 className="mt-3 text-3xl font-black text-[var(--paper)]">
-            Quick answers
+            {faqTitle}
           </h2>
         </div>
         <p className="max-w-md text-sm leading-6 text-[var(--paper-muted)]">

@@ -10,16 +10,16 @@ const GA_MEASUREMENT_ID = 'G-9J8DN1GE8J';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pixvael — Image to Pixel Art Converter',
+    default: 'Image to Pixel Art — Free Online Pixel Art Converter | Pixvael',
     template: '%s | Pixvael',
   },
   description:
-    'Free online image to pixel art converter. Turn any photo into pixel art in your browser — no signup, nothing uploaded. Minecraft, 8-bit, Game Boy palettes.',
+    'Free image to pixel art converter. Turn any photo into pixel art online — no signup, no upload. Minecraft, 8-bit, Game Boy palettes, sharp PNG export.',
   metadataBase: new URL('https://pixvael.com'),
   openGraph: {
-    title: 'Pixvael — Image to Pixel Art Converter',
+    title: 'Image to Pixel Art — Free Online Pixel Art Converter | Pixvael',
     description:
-      'Turn any photo into pixel art in your browser. Free, private, no signup.',
+      'Free image to pixel art converter. Turn any photo into pixel art online — no signup, no upload.',
     url: 'https://pixvael.com',
     siteName: 'Pixvael',
     type: 'website',
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pixvael — Image to Pixel Art Converter',
+    title: 'Image to Pixel Art — Free Online Pixel Art Converter | Pixvael',
     description:
-      'Turn any photo into pixel art in your browser. Free, private, no signup.',
+      'Free image to pixel art converter. Turn any photo into pixel art online — no signup, no upload.',
     images: ['/hero-portrait-v2.jpg'],
   },
 };
