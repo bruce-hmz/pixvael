@@ -59,9 +59,9 @@ const showcaseCases = [
 ];
 
 export default function Home() {
-  // 提前并行下载首屏 hero 图:BeforeAfter 是 client canvas,默认显示 hero-portrait-v2.webp。
-  // 不 preload 的话浏览器要等 JS 执行完才发现要下载,是 LCP 4.7s 的主因
-  ReactDOM.preload('/hero-portrait-v2.webp', {
+  // 提前并行下载首屏 hero 图:BeforeAfter 是 client canvas,默认显示 hero-portrait-v2.avif。
+  // 不 preload 的话浏览器要等 JS 执行完才发现要下载
+  ReactDOM.preload('/hero-portrait-v2.avif', {
     as: 'image',
     fetchPriority: 'high',
   });

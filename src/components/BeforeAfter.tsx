@@ -9,7 +9,7 @@ const MAX_SPLIT = 100;
 const EDGE_SNAP = 3;
 const HERO_CASES = [
   {
-    src: '/hero-portrait-v2.webp',
+    src: '/hero-portrait-v2.avif',
     label: 'editorial portrait',
     tabLabel: 'Portrait',
   },

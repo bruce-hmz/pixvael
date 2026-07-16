@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import ReactDOM from 'react-dom';
 import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -38,6 +39,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 预加载首屏字体:否则字体请求要等 CSS 下载+解析完(@font-face)才发起,
+  // 处于 HTML→CSS→字体 串行链上(低速 4G 手机端关键路径约 750ms)
+  ReactDOM.preload('/fonts/geist-mono-latin.woff2', {
+    as: 'font',
+    crossOrigin: 'anonymous',
+  });
+  ReactDOM.preload('/fonts/pixelify-sans-latin.woff2', {
+    as: 'font',
+    crossOrigin: 'anonymous',
+  });
+
   return (
     <html
       lang="en"
