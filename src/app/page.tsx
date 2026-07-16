@@ -64,6 +64,9 @@ export default function Home() {
   ReactDOM.preload('/hero-portrait-v2.avif', {
     as: 'image',
     fetchPriority: 'high',
+    imageSrcSet:
+      '/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w',
+    imageSizes: '(max-width: 640px) 360px, 1080px',
   });
 
   return (

@@ -191,6 +191,8 @@ export function BeforeAfter() {
             canvas onload 绘制后会覆盖它;CSS filter 预匹配 canvas 的调色,减少切换跳变 */}
         <img
           src={HERO_CASES[0].src}
+          srcSet="/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w"
+          sizes="(max-width: 640px) 360px, 1080px"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 size-full object-cover"
