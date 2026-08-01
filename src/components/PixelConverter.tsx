@@ -1,6 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  PIXVAEL_EVENTS,
+  trackEvent,
+  type AnalyticsParams,
+  type PixvaelEventName,
+} from '@/lib/analytics';
 import { PALETTES, getPalette } from '@/lib/palettes';
 import {
   MINECRAFT_BLOCKS,
@@ -28,6 +34,7 @@ type Props = {
   defaultPaletteId?: string;
   mode?: 'pixel' | 'minecraft';
   minecraftTool?: 'planner' | 'maker' | 'converter';
+  inputId?: string;
 };
 
 type MinecraftGrid = {
@@ -239,6 +246,7 @@ export function PixelConverter({
   defaultPaletteId = 'full',
   mode = 'pixel',
   minecraftTool = 'planner',
+  inputId = 'pixvael-image-input',
 }: Props) {
   const isMinecraftMode = mode === 'minecraft';
   const isMinecraftMaker = isMinecraftMode && minecraftTool === 'maker';
@@ -250,6 +258,10 @@ export function PixelConverter({
   const fullCanvasRef = useRef<HTMLCanvasElement | null>(null); // 完整输出(下载用)
   const minecraftPreviewBaseRef = useRef<HTMLCanvasElement | null>(null);
   const minecraftResultRef = useRef<ImageData | null>(null);
+  const renderedSourceRef = useRef('');
+  const progressStartedRef = useRef('');
+  const resumedBuildRef = useRef('');
+  const makerEditedRef = useRef('');
 
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [pixelSize, setPixelSize] = useState(defaultPixelSize);
@@ -276,6 +288,16 @@ export function PixelConverter({
   const [editHistory, setEditHistory] = useState<string[][]>([]);
   const [editHistoryIndex, setEditHistoryIndex] = useState(-1);
   const [converterPreviews, setConverterPreviews] = useState<ConverterPreview[]>([]);
+
+  const trackPixelEvent = useCallback(
+    (eventName: PixvaelEventName, params: AnalyticsParams = {}) =>
+      trackEvent(eventName, {
+        product_mode: mode,
+        minecraft_tool: isMinecraftMode ? minecraftTool : undefined,
+        ...params,
+      }),
+    [isMinecraftMode, minecraftTool, mode],
+  );
 
   const render = useCallback(() => {
     if (!image || !sourceCanvasRef.current || !previewCanvasRef.current) return;
@@ -448,6 +470,18 @@ export function PixelConverter({
         } catch {
           localStorage.removeItem(progressKey);
         }
+        if (restoredCells.size > 0) {
+          progressStartedRef.current = progressKey;
+          if (resumedBuildRef.current !== progressKey) {
+            resumedBuildRef.current = progressKey;
+            trackPixelEvent(PIXVAEL_EVENTS.buildResumed, {
+              completed_blocks: restoredCells.size,
+              grid_columns: nextGrid.columns,
+              grid_rows: nextGrid.rows,
+              restore_source: isRestoredImage ? 'session' : 'local_project',
+            });
+          }
+        }
         setMinecraftGrid(nextGrid);
         setMinecraftMaterials(materials);
         setMinecraftCellBlockIds(activeBlockIds);
@@ -458,6 +492,16 @@ export function PixelConverter({
         setHoveredCell(null);
         setHoveredBlock(null);
         setActiveSectionIndex(0);
+      }
+      const renderKey = `${sourceId}:${mode}:${minecraftTool}`;
+      if (sourceId && renderedSourceRef.current !== renderKey) {
+        renderedSourceRef.current = renderKey;
+        trackPixelEvent(PIXVAEL_EVENTS.gridReady, {
+          source_width: image.naturalWidth,
+          source_height: image.naturalHeight,
+          grid_columns: resultData.width,
+          grid_rows: resultData.height,
+        });
       }
       setError(null);
       setIsRendering(false);
@@ -478,8 +522,12 @@ export function PixelConverter({
     dither,
     isMinecraftMode,
     isMinecraftMaker,
+    isRestoredImage,
+    minecraftTool,
+    mode,
     targetBlocksAcross,
     sourceId,
+    trackPixelEvent,
   ]);
 
   useEffect(() => {
@@ -654,6 +702,15 @@ export function PixelConverter({
       setError('Please drop an image file (JPG, PNG, or WebP).');
       return;
     }
+    renderedSourceRef.current = '';
+    progressStartedRef.current = '';
+    resumedBuildRef.current = '';
+    makerEditedRef.current = '';
+    trackPixelEvent(PIXVAEL_EVENTS.uploadStarted, {
+      file_type: file.type.slice('image/'.length) || 'unknown',
+      file_size_kb: Math.max(1, Math.round(file.size / 1024)),
+      input_method: 'file_or_drop',
+    });
     const token = ++tokenRef.current;
     const url = URL.createObjectURL(file);
     const nextSourceId = `${file.name}:${file.size}:${file.lastModified}`;
@@ -691,7 +748,7 @@ export function PixelConverter({
       setError('Could not load that image. It may be corrupted or too large.');
     };
     img.src = url;
-  }, [isMinecraftMode]);
+  }, [isMinecraftMode, trackPixelEvent]);
 
   const cellFromPointer = useCallback(
     (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -716,9 +773,25 @@ export function PixelConverter({
       const nextCells = new Set(currentCells);
       if (nextCells.has(cell.index)) nextCells.delete(cell.index);
       else nextCells.add(cell.index);
+      const progressKey = minecraftGrid
+        ? `${MINECRAFT_PROGRESS_PREFIX}:${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`
+        : '';
+      if (
+        currentCells.size === 0 &&
+        nextCells.size > 0 &&
+        progressKey &&
+        progressStartedRef.current !== progressKey
+      ) {
+        progressStartedRef.current = progressKey;
+        trackPixelEvent(PIXVAEL_EVENTS.progressStarted, {
+          progress_source: 'cell',
+          grid_columns: minecraftGrid?.columns,
+          grid_rows: minecraftGrid?.rows,
+        });
+      }
       return nextCells;
     });
-  }, []);
+  }, [minecraftGrid, sourceId, trackPixelEvent]);
 
   const selectMinecraftCell = useCallback(
     (cell: MinecraftCell | null) => {
@@ -801,7 +874,20 @@ export function PixelConverter({
     link.download = 'pixvael-pixel-art.png';
     link.href = fullCanvasRef.current.toDataURL('image/png');
     link.click();
-  }, []);
+    trackPixelEvent(PIXVAEL_EVENTS.imageDownloaded, {
+      export_type: 'png',
+      grid_columns: minecraftGrid?.columns,
+      grid_rows: minecraftGrid?.rows,
+      pixel_size: isMinecraftMode ? undefined : pixelSize,
+      palette: isMinecraftMode ? 'minecraft-blocks' : paletteId,
+    });
+  }, [
+    isMinecraftMode,
+    minecraftGrid,
+    paletteId,
+    pixelSize,
+    trackPixelEvent,
+  ]);
 
   const handleMaterialsDownload = useCallback(() => {
     if (!minecraftGrid || minecraftMaterials.length === 0) return;
@@ -824,7 +910,17 @@ export function PixelConverter({
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);
-  }, [minecraftGrid, minecraftMaterials]);
+    trackPixelEvent(PIXVAEL_EVENTS.materialsExported, {
+      export_type: 'csv',
+      grid_columns: minecraftGrid.columns,
+      grid_rows: minecraftGrid.rows,
+      material_types: minecraftMaterials.length,
+      total_blocks: minecraftMaterials.reduce(
+        (sum, material) => sum + material.count,
+        0,
+      ),
+    });
+  }, [minecraftGrid, minecraftMaterials, trackPixelEvent]);
 
   const handleBlueprintDownload = useCallback(() => {
     const result = minecraftResultRef.current;
@@ -900,7 +996,13 @@ export function PixelConverter({
     link.download = 'pixvael-minecraft-blueprint.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
-  }, [minecraftGrid, sectionSize]);
+    trackPixelEvent(PIXVAEL_EVENTS.blueprintExported, {
+      export_type: 'full_blueprint_png',
+      grid_columns: minecraftGrid.columns,
+      grid_rows: minecraftGrid.rows,
+      section_size: sectionSize,
+    });
+  }, [minecraftGrid, sectionSize, trackPixelEvent]);
 
   const currentPalette = isMinecraftMode
     ? MINECRAFT_PALETTE
@@ -1061,6 +1163,21 @@ export function PixelConverter({
     setEditHistoryIndex(nextHistory.length - 1);
     applyMinecraftCellIds(nextBlockIds);
     persistMinecraftEdits(nextBlockIds);
+    const editKey = minecraftGrid
+      ? `${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`
+      : '';
+    if (editKey && makerEditedRef.current !== editKey) {
+      makerEditedRef.current = editKey;
+      trackPixelEvent(PIXVAEL_EVENTS.makerEdited, {
+        edited_cells: nextBlockIds.reduce(
+          (count, blockId, index) =>
+            count +
+            (blockId !== originalMinecraftCellBlockIds[index] ? 1 : 0),
+          0,
+        ),
+        edit_tool: makerTool,
+      });
+    }
   }
 
   function undoMinecraftEdit() {
@@ -1112,6 +1229,23 @@ export function PixelConverter({
       for (const { cell } of activeSectionCells) {
         if (activeSectionIsComplete) nextCells.delete(cell.index);
         else nextCells.add(cell.index);
+      }
+      const progressKey = minecraftGrid
+        ? `${MINECRAFT_PROGRESS_PREFIX}:${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`
+        : '';
+      if (
+        currentCells.size === 0 &&
+        nextCells.size > 0 &&
+        progressKey &&
+        progressStartedRef.current !== progressKey
+      ) {
+        progressStartedRef.current = progressKey;
+        trackPixelEvent(PIXVAEL_EVENTS.progressStarted, {
+          progress_source: 'section',
+          grid_columns: minecraftGrid?.columns,
+          grid_rows: minecraftGrid?.rows,
+          section_size: sectionSize,
+        });
       }
       return nextCells;
     });
@@ -1193,6 +1327,13 @@ export function PixelConverter({
     link.download = `pixvael-zone-${activeSectionIndex + 1}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
+    trackPixelEvent(PIXVAEL_EVENTS.blueprintExported, {
+      export_type: 'zone_blueprint_png',
+      grid_columns: minecraftGrid.columns,
+      grid_rows: minecraftGrid.rows,
+      section_size: sectionSize,
+      zone_number: activeSectionIndex + 1,
+    });
   }
 
   return (
@@ -1207,16 +1348,16 @@ export function PixelConverter({
               : isMinecraftConverter
                 ? '/ minecraft conversion lab'
               : isMinecraftMode
-                ? '/ minecraft build planner'
-                : '/ open tool'}
+              ? '/ minecraft build planner'
+              : '/ open tool'}
           </p>
           <h2 className="mt-2 text-2xl font-black text-[var(--paper)]">
             {isMinecraftMaker
-              ? 'Generate a base, repaint blocks, export your design.'
+              ? 'Generate a base, repaint blocks, and export the finished blueprint.'
               : isMinecraftConverter
-                ? 'Compare four build sizes, then export the best plan.'
+                ? 'Compare four build sizes, then open the next tool with the winning plan.'
               : isMinecraftMode
-              ? 'Set the build grid, count blocks, export a guide.'
+              ? 'Set the build grid, count blocks, and keep the section plan moving.'
               : 'Drop an image, tune the blocks, export PNG.'}
           </h2>
         </div>
@@ -1373,11 +1514,11 @@ export function PixelConverter({
               <p className="terminal-label">controls</p>
               <p className="mt-2 text-sm leading-6 text-[var(--paper-muted)]">
                 {isMinecraftMaker
-                  ? 'Choose the canvas width, then use the block editor below to repaint individual cells.'
+                  ? 'Choose the canvas width, then repaint the cells that do not match the build you want.'
                   : isMinecraftConverter
-                    ? 'Compare four generated sizes below, then fine-tune the selected grid and exports.'
+                    ? 'Compare four generated sizes below, then open the maker if a result needs cleanup or the planner if it is ready.'
                   : isMinecraftMode
-                  ? 'Choose the build width. Height, block colors, and material counts update automatically.'
+                  ? 'Choose the build width. Height, block colors, and material counts update automatically, and you can jump to the other Minecraft tools when needed.'
                   : 'Push the block size for chunkier art, then limit the palette for a stronger retro read.'}
               </p>
             </div>
@@ -1952,8 +2093,8 @@ export function PixelConverter({
               : 'PNG export keeps hard pixel edges.'}
           </p>
           <p>
-            <span className="font-mono text-[var(--pixel-lime)]">03</span> Your
-            photo never leaves the browser.
+            <span className="font-mono text-[var(--pixel-lime)]">03</span> Image
+            processing stays on this device.
           </p>
         </div>
       ) : (
@@ -1969,13 +2110,14 @@ export function PixelConverter({
             </p>
             <p>
               <span className="font-mono text-[var(--pixel-lime)]">privacy</span>{' '}
-              local canvas only
+              local image processing
             </p>
           </div>
         </div>
       )}
 
       <input
+        id={inputId}
         ref={fileInputRef}
         type="file"
         accept="image/*"

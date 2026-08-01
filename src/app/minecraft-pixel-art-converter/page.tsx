@@ -57,6 +57,7 @@ export default function MinecraftPixelArtConverterPage() {
       defaultPaletteId="full"
       mode="minecraft"
       minecraftTool="converter"
+      minecraftStep="compare"
       facts={['4 live variants', 'size comparison', 'private export']}
       faqs={faqs}
     >

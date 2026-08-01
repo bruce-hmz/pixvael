@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { PIXVAEL_EVENTS, trackEvent } from '@/lib/analytics';
 
 export function Header() {
   const pathname = usePathname();
@@ -37,6 +38,15 @@ export function Header() {
           <Link
             href="/#tool"
             aria-current={pathname === '/' ? 'page' : undefined}
+            onClick={() => {
+              if (isMinecraftPage) {
+                trackEvent(PIXVAEL_EVENTS.modeSwitched, {
+                  from_step: 'minecraft',
+                  to_step: 'pixel',
+                  switch_location: 'header_nav',
+                });
+              }
+            }}
             className="hover:text-[var(--pixel-cyan)] aria-[current=page]:text-[var(--paper)]"
           >
             Tool
@@ -44,6 +54,15 @@ export function Header() {
           <Link
             href="/minecraft-pixel-art"
             aria-current={isMinecraftPage ? 'page' : undefined}
+            onClick={() => {
+              if (!isMinecraftPage) {
+                trackEvent(PIXVAEL_EVENTS.modeSwitched, {
+                  from_step: 'pixel',
+                  to_step: 'build',
+                  switch_location: 'header_nav',
+                });
+              }
+            }}
             className="hover:text-[var(--pixel-cyan)] aria-[current=page]:text-[var(--paper)]"
           >
             Minecraft mode

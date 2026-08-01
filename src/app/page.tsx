@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import { BeforeAfter } from '@/components/BeforeAfter';
 import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
+import { TrackedModeLink } from '@/components/TrackedModeLink';
 import { buildWebAppSchema, buildFaqSchema, buildOrganizationSchema } from '@/lib/structured-data';
 
 // 首屏交互工具懒加载:PixelConverter 是 76KB/1991 行的 client 组件,在 hero 下方,
@@ -28,7 +29,7 @@ const faqs = [
   {
     question: 'Do my images get uploaded to a server?',
     answer:
-      'No. The conversion runs entirely in your browser on an HTML5 canvas, so your photo never leaves your device. Nothing is uploaded or stored.',
+      'No. Image decoding and conversion run in your browser, so source files and generated art are not sent to Pixvael. Basic analytics may record tool actions, never image contents or file names.',
   },
   {
     question: 'What format can I export?',
@@ -86,47 +87,64 @@ export default function Home() {
     fetchPriority: 'high',
     imageSrcSet:
       '/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w',
-    imageSizes: '(max-width: 640px) 360px, 1080px',
+    imageSizes: '(max-width: 640px) 360px, 560px',
   });
 
   return (
     <div className="page-shell">
-      <section className="rail-frame">
-        <BeforeAfter />
+      <section className="rail-frame grid gap-8 px-4 py-8 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
+        <div className="py-2 sm:py-6 lg:py-0">
+          <p className="terminal-label">/ image to pixel art</p>
+          <h1 className="crt-title mt-5 max-w-[320px] break-words text-[3rem] leading-[1.03] sm:max-w-5xl sm:text-[clamp(3.2rem,6vw,5.6rem)]">
+            <span className="block text-[var(--paper)] [text-shadow:none]">Turn any </span>
+            <span className="block text-[var(--paper)] [text-shadow:none] sm:inline">image to </span>
+            <span className="block text-[var(--pixel-lime)] sm:inline">pixel art</span>
+          </h1>
+          <p className="mt-8 max-w-[320px] text-base leading-7 text-[var(--paper)] sm:max-w-2xl sm:text-lg">
+            Transform photos into crisp pixel art instantly. Customize block
+            size, palette, and dithering, then export a sharp PNG. Image
+            processing runs in your browser with no signup and no upload.
+          </p>
 
-        <div className="grid gap-8 border-b border-[var(--line)] px-4 py-12 sm:px-10 lg:grid-cols-[1fr_260px] lg:items-start">
-          <div>
-            <p className="terminal-label">/ image to pixel art</p>
-            <h1 className="crt-title mt-5 max-w-[320px] break-words text-[3rem] leading-[1.03] sm:max-w-5xl sm:text-[clamp(3.2rem,6vw,5.6rem)]">
-              <span className="block text-[var(--paper)] [text-shadow:none]">Turn any </span>
-              <span className="block text-[var(--paper)] [text-shadow:none] sm:inline">image to </span>
-              <span className="block text-[var(--pixel-lime)] sm:inline">pixel art</span>
-            </h1>
-            <p className="mt-8 max-w-[320px] text-base leading-7 text-[var(--paper)] sm:max-w-2xl sm:text-lg">
-              Transform photos into crisp pixel art instantly. Customize block
-              size, palette, and dithering, then export a sharp PNG. Everything
-              runs in your browser with no signup and no upload.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 lg:items-stretch">
-            <a href="#tool" className="pixel-button text-sm">
-              Upload Your Image
-            </a>
-            <a
+          <div className="mt-8 flex flex-col gap-4 sm:max-w-md sm:flex-row">
+            <label
+              htmlFor="pixvael-image-input"
+              className="pixel-button cursor-pointer text-sm"
+            >
+              Choose an image
+            </label>
+            <TrackedModeLink
               href="/minecraft-pixel-art"
+              fromStep="pixel"
+              toStep="build"
+              switchLocation="home_hero"
               className="pixel-button pixel-button-secondary text-sm"
             >
               Minecraft mode
-            </a>
-            <p className="border border-[var(--line)] bg-black/25 px-3 py-2 font-mono text-xs text-[var(--paper-muted)]">
-              <span className="text-[var(--pixel-lime)]">✓</span> Free&nbsp;&nbsp;
-              <span className="text-[var(--pixel-lime)]">✓</span> Private&nbsp;&nbsp;
-              <span className="text-[var(--pixel-lime)]">✓</span> Browser only
-            </p>
+            </TrackedModeLink>
           </div>
+
+          <p className="mt-4 max-w-md border border-[var(--line)] bg-black/25 px-3 py-2 font-mono text-xs text-[var(--paper-muted)]">
+            <span className="text-[var(--pixel-lime)]">✓</span> Free&nbsp;&nbsp;
+            <span className="text-[var(--pixel-lime)]">✓</span> Image stays local&nbsp;&nbsp;
+            <span className="text-[var(--pixel-lime)]">✓</span> No signup
+          </p>
+          <p className="mt-3 max-w-md text-xs leading-5 text-[var(--paper-muted)]">
+            Basic analytics may record tool actions, never image contents or
+            file names.
+          </p>
         </div>
 
+        <div className="lg:justify-self-end">
+          <BeforeAfter />
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <PixelConverter inputId="pixvael-image-input" />
+      </section>
+
+      <section className="rail-frame mt-14">
         <div className="grid border-b border-[var(--line)] bg-black/20 md:grid-cols-3">
           {showcaseCases.map((item) => (
             <article
@@ -156,10 +174,6 @@ export default function Home() {
             </article>
           ))}
         </div>
-      </section>
-
-      <section className="mt-14">
-        <PixelConverter />
       </section>
 
       <InfoGrid

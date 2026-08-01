@@ -52,6 +52,7 @@ export default function MinecraftPixelArtMakerPage() {
       defaultPaletteId="full"
       mode="minecraft"
       minecraftTool="maker"
+      minecraftStep="edit"
       facts={['block painter', '20 materials', 'local export']}
       faqs={faqs}
     >

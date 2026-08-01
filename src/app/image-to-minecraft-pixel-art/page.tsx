@@ -54,6 +54,7 @@ export default function ImageToMinecraftPixelArtPage() {
       defaultPixelSize={12}
       defaultPaletteId="full"
       mode="minecraft"
+      minecraftStep="convert"
       facts={['image input', 'block mapping', 'materials CSV']}
       faqs={faqs}
     >

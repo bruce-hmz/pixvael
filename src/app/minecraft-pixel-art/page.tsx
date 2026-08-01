@@ -48,11 +48,12 @@ export default function MinecraftPixelArtPage() {
       <PixelLanding
         eyebrow="/ minecraft pixel art"
         title="Minecraft pixel art"
-        description="Turn any photo into a Minecraft build plan right in your browser. Set the grid width, map colors to common blocks, and download a PNG plus material list with no signup and nothing uploaded."
+        description="Turn any image into a buildable Minecraft blueprint in your browser. Set the grid width, map colors to common blocks, then build by sections with saved local progress."
         defaultPixelSize={12}
         defaultPaletteId="full"
         mode="minecraft"
-        facts={['48-block default', 'material counts', 'PNG + CSV']}
+        minecraftStep="build"
+        facts={['blueprint', 'materials', 'saved progress']}
         faqs={faqs}
       >
         <InfoGrid
