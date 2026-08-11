@@ -16,6 +16,15 @@ const PixelConverter = dynamic(
   },
 );
 
+// 三调色板对比区块懒加载:PaletteShowcase 是 client canvas 组件,在 Styles 段之后,
+// 远离首屏。懒加载避免 pixelize 逻辑进首屏关键 JS。
+const PaletteShowcase = dynamic(
+  () => import('@/components/PaletteShowcase').then((m) => m.PaletteShowcase),
+  {
+    loading: () => <div className="min-h-[300px] animate-pulse" aria-hidden="true" />,
+  },
+);
+
 export const metadata: Metadata = {
   alternates: { canonical: 'https://pixvael.com' },
 };
@@ -250,6 +259,23 @@ export default function Home() {
           updates instantly, so you can compare styles side by side before you
           export.
         </p>
+      </section>
+
+      <section className="mt-16">
+        <p className="terminal-label">compare palettes</p>
+        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
+          See How Each Palette Changes Your Image
+        </h2>
+        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+          The same source photo, converted three ways in your browser. Full
+          color keeps every original hue, retro snaps to a 16-color PICO-8 set,
+          and Game Boy compresses everything into four greens. Switch the source
+          image to see how each palette handles portraits, pets, and game
+          characters differently.
+        </p>
+        <div className="mt-8">
+          <PaletteShowcase />
+        </div>
       </section>
 
       <section className="pixel-panel mt-16 p-6 sm:p-8">
