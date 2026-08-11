@@ -1,12 +1,12 @@
 'use client';
 
 // 同一张源图 × 三个 palette（Full Color / Retro 8-bit / Game Boy）实时像素化并排渲染。
-// 复用 BeforeAfter 的 pixelize + getPalette 链路，让用户直观对比调色板差异。
-// dynamic import 进首页，不进首屏关键路径。
+// 复用 BeforeAfter 的 pixelize + getPalette 链路,让用户直观对比调色板差异。
+// dynamic import 进首页,不进首屏关键路径。
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { pixelize } from '@/lib/pixelize';
-import { getPalette, type Palette } from '@/lib/palettes';
+import { getPalette } from '@/lib/palettes';
 
 const CASES = [
   { src: '/hero-portrait-v2.avif', label: 'Portrait' },
@@ -76,35 +76,14 @@ function drawSource(
 }
 
 export function PaletteShowcase() {
-  const refs = [
-    useRef<HTMLCanvasElement>(null),
-    useRef<HTMLCanvasElement>(null),
-    useRef<HTMLCanvasElement>(null),
-  ];
+  // 三个独立 ref（stable）。不要把 ref 放进数组再作为 effect/useCallback 的依赖,
+  // 否则数组每次 render 重建会触发渲染循环 → canvas 闪烁。
+  const fullRef = useRef<HTMLCanvasElement>(null);
+  const retroRef = useRef<HTMLCanvasElement>(null);
+  const gameboyRef = useRef<HTMLCanvasElement>(null);
   const [activeCase, setActiveCase] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // 同一份 sourceData 跑三个 palette,避免重复 decode/getImageData。
-  const renderAll = useCallback((sourceData: ImageData, palettes: Palette[]) => {
-    VARIANTS.forEach((variant, i) => {
-      const canvas = refs[i].current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const result = pixelize(sourceData, {
-        pixelSize: PIXEL_SIZE,
-        palette: palettes[i],
-        dither: variant.dither,
-      });
-
-      canvas.width = result.width;
-      canvas.height = result.height;
-      ctx.imageSmoothingEnabled = false;
-      ctx.putImageData(result, 0, 0);
-    });
-  }, [refs]);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,8 +104,25 @@ export function PaletteShowcase() {
         return;
       }
       const sourceData = drawSource(offCtx, image);
-      const palettes = VARIANTS.map((v) => getPalette(v.id));
-      renderAll(sourceData, palettes);
+      // 同一份 sourceData 跑三个 palette,避免重复 decode/getImageData。
+      const canvasRefs = [fullRef, retroRef, gameboyRef];
+      VARIANTS.forEach((variant, i) => {
+        const canvas = canvasRefs[i].current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const result = pixelize(sourceData, {
+          pixelSize: PIXEL_SIZE,
+          palette: getPalette(variant.id),
+          dither: variant.dither,
+        });
+
+        canvas.width = result.width;
+        canvas.height = result.height;
+        ctx.imageSmoothingEnabled = false;
+        ctx.putImageData(result, 0, 0);
+      });
       setIsLoading(false);
     };
     image.onerror = () => {
@@ -139,7 +135,12 @@ export function PaletteShowcase() {
     return () => {
       cancelled = true;
     };
-  }, [activeCase, renderAll]);
+    // fullRef/retroRef/gameboyRef 是 stable ref 对象,exhaustive-deps 豁免;
+    // 只有切 tab（activeCase）才重渲染。
+  }, [activeCase]);
+
+  // render 内组合三个 ref 供 JSX 映射用。数组本身不进任何 effect 依赖。
+  const canvasRefs = [fullRef, retroRef, gameboyRef];
 
   return (
     <div className="pixel-panel overflow-hidden">
@@ -151,7 +152,7 @@ export function PaletteShowcase() {
               {/* canvas 实际尺寸是缩小后的像素网格(pixelSize 10 → 48×27),
                   用 CSS 拉满容器并保留硬边。 */}
               <canvas
-                ref={refs[i]}
+                ref={canvasRefs[i]}
                 className={`size-full ${
                   isLoading ? 'opacity-0' : 'opacity-100'
                 }`}
