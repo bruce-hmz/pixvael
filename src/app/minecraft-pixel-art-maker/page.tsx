@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     description:
       'Make Minecraft pixel art from any photo. Free online maker — no signup, no watermark, runs in your browser.',
     url: 'https://pixvael.com/minecraft-pixel-art-maker',
-    images: [{ url: '/hero-character.jpg', width: 1200, height: 800 }],
+    images: [{ url: '/hero-character.jpg', width: 1024, height: 559 }],
   },
   twitter: { card: 'summary_large_image', images: ['/hero-character.jpg'] },
 };

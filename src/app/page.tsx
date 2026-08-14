@@ -5,7 +5,7 @@ import { BeforeAfter } from '@/components/BeforeAfter';
 import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
 import { TrackedModeLink } from '@/components/TrackedModeLink';
-import { buildWebAppSchema, buildFaqSchema, buildOrganizationSchema } from '@/lib/structured-data';
+import { buildBreadcrumbSchema, buildWebAppSchema, buildFaqSchema, buildOrganizationSchema } from '@/lib/structured-data';
 
 // 首屏交互工具懒加载:PixelConverter 是 76KB/1991 行的 client 组件,在 hero 下方,
 // 不在首屏视觉区。next/dynamic 把它代码分割到独立 chunk,移出首屏关键 JS 以改善 FCP/TBT
@@ -331,8 +331,18 @@ export default function Home() {
       <FaqSection faqs={faqs} faqTitle="Image to Pixel Art FAQ" />
 
       <JsonLd data={buildOrganizationSchema()} />
-      <JsonLd data={buildWebAppSchema()} />
+      <JsonLd
+        data={buildWebAppSchema({
+          image: 'https://pixvael.com/hero-portrait-v2.jpg',
+        })}
+      />
       <JsonLd data={buildFaqSchema(faqs)} />
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Image to Pixel Art', url: 'https://pixvael.com' },
+        ])}
+      />
     </div>
   );
 }

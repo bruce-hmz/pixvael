@@ -10,21 +10,17 @@ import {
 const pageUrl = 'https://pixvael.com/minecraft-pixel-art';
 
 export const metadata: Metadata = {
-  title: 'Minecraft Pixel Art — Convert Any Image to Minecraft Style',
+  title: 'Minecraft Pixel Art — Block Plan Builder',
   description:
-    'Turn any photo into a Minecraft block plan in your browser. Set the grid width, count mapped materials, and download a PNG plus CSV — no signup or upload.',
+    'Plan a Minecraft pixel art build block by block. Choose your grid, map materials to blocks, track progress across sections, and export blueprints — free, no signup or upload.',
   alternates: { canonical: 'https://pixvael.com/minecraft-pixel-art' },
-  keywords: [
-    'minecraft pixel art',
-    'minecraft pixel art converter',
-    'minecraft pixel art maker',
-  ],
+  keywords: ['minecraft pixel art'],
   openGraph: {
-    title: 'Minecraft Pixel Art — Convert Any Image to Minecraft Style',
+    title: 'Minecraft Pixel Art — Block Plan Builder',
     description:
-      'Turn any photo into a Minecraft block plan with a build grid, material counts, PNG guide, and CSV export.',
+      'Turn any photo into a Minecraft block plan: build grid, material counts, section progress tracking, and PNG + CSV export — all in your browser.',
     url: 'https://pixvael.com/minecraft-pixel-art',
-    images: [{ url: '/hero-minecraft.jpg', width: 1200, height: 800 }],
+    images: [{ url: '/hero-minecraft.jpg', width: 1024, height: 559 }],
   },
   twitter: { card: 'summary_large_image', images: ['/hero-minecraft.jpg'] },
 };

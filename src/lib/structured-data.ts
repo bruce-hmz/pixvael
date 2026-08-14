@@ -17,7 +17,9 @@ export function buildWebAppSchema(options?: {
   description?: string;
   url?: string;
   featureList?: string[];
+  image?: string;
 }) {
+  const url = options?.url ?? 'https://pixvael.com';
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -26,11 +28,17 @@ export function buildWebAppSchema(options?: {
       options?.description ?? 'Free online image to pixel art converter.',
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Any',
-    url: options?.url ?? 'https://pixvael.com',
+    url,
+    ...(options?.image ? { image: options.image } : {}),
     ...(options?.featureList
       ? { featureList: options.featureList.join(', ') }
       : {}),
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      url,
+    },
   };
 }
 
@@ -56,6 +64,6 @@ export function buildOrganizationSchema(options?: {
     '@type': 'Organization',
     name: 'Pixvael',
     url: options?.url ?? 'https://pixvael.com',
-    logo: options?.logo ?? 'https://pixvael.com/hero-portrait-v2.jpg',
+    logo: options?.logo ?? 'https://pixvael.com/logo.jpg',
   };
 }

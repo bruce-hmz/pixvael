@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     description:
       'Free Minecraft pixel art converter. Turn any photo into Minecraft-style pixel art in your browser — no signup, nothing uploaded.',
     url: 'https://pixvael.com/minecraft-pixel-art-converter',
-    images: [{ url: '/hero-minecraft.jpg', width: 1200, height: 800 }],
+    images: [{ url: '/hero-minecraft.jpg', width: 1024, height: 559 }],
   },
   twitter: { card: 'summary_large_image', images: ['/hero-minecraft.jpg'] },
 };

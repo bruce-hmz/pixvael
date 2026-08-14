@@ -29,7 +29,7 @@ const faqs = [
 export const metadata: Metadata = {
   title: 'Image to Minecraft Pixel Art — Free Online Converter',
   description:
-    'Convert any image into a Minecraft block plan online. Set the grid width, inspect material counts, and download a PNG plus CSV locally.',
+    'Turn a photo into Minecraft blocks in seconds. Pick a grid width and get an instant block map plus material CSV — free, no signup, nothing uploaded.',
   alternates: { canonical: 'https://pixvael.com/image-to-minecraft-pixel-art' },
   keywords: [
     'image to minecraft pixel art',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     description:
       'Convert any image to Minecraft pixel art online. Free, private, no signup — runs in your browser.',
     url: 'https://pixvael.com/image-to-minecraft-pixel-art',
-    images: [{ url: '/hero-minecraft.jpg', width: 1200, height: 800 }],
+    images: [{ url: '/hero-minecraft.jpg', width: 1024, height: 559 }],
   },
   twitter: { card: 'summary_large_image', images: ['/hero-minecraft.jpg'] },
 };
@@ -82,14 +82,15 @@ export default function ImageToMinecraftPixelArtPage() {
           under a second. It is the right tool when you want to see whether an
           image is worth building before you commit — try a pet photo, a logo,
           or a character portrait at 32 or 48 blocks wide, and the result tells
-          you immediately if the silhouette holds up. There is no block editing
-          here; the output is a reference PNG and a material list you rebuild by
-          hand. If your build is large enough to need sections and progress
-          tracking, switch to the{' '}
+          you immediately if the silhouette holds up. The build planner
+          embedded on this page keeps larger builds organized too: track
+          progress across sections and come back later — your plan is saved in
+          this browser. For a deeper guide to sizes, sections, and material
+          mapping, see the{' '}
           <a href="/minecraft-pixel-art" className="text-[var(--pixel-lime)] underline">
-            build planner
+            build planner guide
           </a>
-          . If you want to fix individual blocks after conversion, use the{' '}
+          . To fix individual blocks after conversion, use the{' '}
           <a href="/minecraft-pixel-art-maker" className="text-[var(--pixel-lime)] underline">
             maker
           </a>

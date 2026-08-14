@@ -12,7 +12,7 @@ export function Footer() {
           <span className="text-[var(--pixel-lime)]">● ready</span>
         </div>
         <nav
-          className="flex items-center gap-4"
+          className="flex items-center gap-3 md:gap-4"
           aria-label="Pixvael tools"
         >
           <Link
@@ -26,6 +26,24 @@ export function Footer() {
             className="hover:text-[var(--pixel-lime)]"
           >
             Build planner
+          </Link>
+          <Link
+            href="/image-to-minecraft-pixel-art"
+            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+          >
+            Image→MC
+          </Link>
+          <Link
+            href="/minecraft-pixel-art-maker"
+            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+          >
+            Maker
+          </Link>
+          <Link
+            href="/minecraft-pixel-art-converter"
+            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+          >
+            Converter
           </Link>
           <span className="hidden md:inline">100%</span>
         </nav>
