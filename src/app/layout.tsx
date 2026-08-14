@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 
 // Google Analytics 4 Measurement ID（前端嵌入，公开非敏感）
 const GA_MEASUREMENT_ID = 'G-9J8DN1GE8J';
@@ -78,6 +79,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

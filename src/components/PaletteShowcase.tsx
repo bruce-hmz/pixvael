@@ -87,8 +87,6 @@ export function PaletteShowcase() {
 
   useEffect(() => {
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
 
     const image = new Image();
     image.onload = () => {
@@ -191,7 +189,13 @@ export function PaletteShowcase() {
             type="button"
             aria-pressed={index === activeCase}
             aria-label={`Show ${item.label.toLowerCase()} across palettes`}
-            onClick={() => setActiveCase(index)}
+            onClick={() => {
+              // 切 tab 时同步重置加载态(事件处理器内 setState 合法;
+              // 不能放 effect 体内,否则触发 react-hooks/set-state-in-effect)
+              setActiveCase(index);
+              setIsLoading(true);
+              setError(null);
+            }}
             className={`flex min-h-11 items-center justify-center gap-2 border px-2 font-mono text-[0.65rem] uppercase transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pixel-lime)] sm:text-xs ${
               index === activeCase
                 ? 'border-[var(--pixel-lime)] bg-[rgba(51,255,51,0.12)] text-[var(--paper)]'

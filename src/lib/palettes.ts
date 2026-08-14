@@ -58,5 +58,11 @@ export const PALETTES: Palette[] = [
 ];
 
 export function getPalette(id: string): Palette {
-  return PALETTES.find((p) => p.id === id) ?? FULL_COLOR_PALETTE;
+  const palette = PALETTES.find((p) => p.id === id);
+  if (!palette) {
+    // fail fast:静默回退会让"效果没了"的 bug 无日志可查。
+    // 'minecraft' 由调用方特判(MINECRAFT_PALETTE),本函数只接受 PALETTES 内的 id。
+    throw new Error(`Unknown palette id: ${id}`);
+  }
+  return palette;
 }

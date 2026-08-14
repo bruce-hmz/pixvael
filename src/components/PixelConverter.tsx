@@ -14,10 +14,28 @@ import {
   type MinecraftBlock,
   type MinecraftMaterial,
 } from '@/lib/minecraft-blocks';
+import {
+  blockIdsFromMinecraftImage,
+  drawMinecraftGrid,
+  drawMinecraftProgress,
+  drawSectionFocus,
+  materialsFromBlockIds,
+  minecraftImageFromBlockIds,
+  rgbValue,
+  type MinecraftCell,
+  type MinecraftGrid,
+} from '@/lib/minecraft-canvas';
+import {
+  downloadBlueprintPng,
+  downloadCanvasPng,
+  downloadMaterialsCsv,
+  downloadZoneBlueprintPng,
+} from '@/lib/exporters';
 import type {
   PixelizeWorkerRequest,
   PixelizeWorkerResponse,
 } from '@/lib/pixelize-worker-types';
+import { parseGridWidthParam } from '@/lib/url-params';
 
 const MAX_DIM = 1280; // 最大处理边长,防止大图爆内存
 const SESSION_IMAGE_KEY = 'pixvael:source-image';
@@ -35,17 +53,8 @@ type Props = {
   mode?: 'pixel' | 'minecraft';
   minecraftTool?: 'planner' | 'maker' | 'converter';
   inputId?: string;
-};
-
-type MinecraftGrid = {
-  columns: number;
-  rows: number;
-};
-
-type MinecraftCell = {
-  column: number;
-  row: number;
-  index: number;
+  // 带参跳转:URL ?width= 传入的初始网格宽度(16-128)。合法值直接采用,否则回落默认 48。
+  defaultMinecraftGridWidth?: number;
 };
 
 type ConverterPreview = {
@@ -55,10 +64,6 @@ type ConverterPreview = {
   materialCount: number;
   imageUrl: string;
 };
-
-function rgbValue({ r, g, b }: { r: number; g: number; b: number }) {
-  return `rgb(${r}, ${g}, ${b})`;
-}
 
 function palettePreviewColors(paletteId: string) {
   const palette = getPalette(paletteId);
@@ -75,144 +80,6 @@ function palettePreviewColors(paletteId: string) {
     '#8f7cff',
     '#f6f1df',
   ];
-}
-
-function drawMinecraftGrid(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  columns: number,
-  rows: number,
-) {
-  const cellWidth = width / columns;
-  const cellHeight = height / rows;
-
-  ctx.save();
-  for (let column = 0; column <= columns; column++) {
-    const major = column % 8 === 0;
-    const x = Math.round(column * cellWidth) + 0.5;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.strokeStyle = major ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.34)';
-    ctx.lineWidth = major ? 1 : 0.5;
-    ctx.stroke();
-  }
-  for (let row = 0; row <= rows; row++) {
-    const major = row % 8 === 0;
-    const y = Math.round(row * cellHeight) + 0.5;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.strokeStyle = major ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.34)';
-    ctx.lineWidth = major ? 1 : 0.5;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawMinecraftProgress(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  grid: MinecraftGrid,
-  completedCells: Set<number>,
-  hoveredCell: MinecraftCell | null,
-) {
-  const cellWidth = width / grid.columns;
-  const cellHeight = height / grid.rows;
-
-  ctx.save();
-  for (const index of completedCells) {
-    const column = index % grid.columns;
-    const row = Math.floor(index / grid.columns);
-    ctx.fillStyle = 'rgba(87, 255, 143, 0.46)';
-    ctx.fillRect(column * cellWidth, row * cellHeight, cellWidth, cellHeight);
-  }
-  if (hoveredCell) {
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(
-      hoveredCell.column * cellWidth + 1,
-      hoveredCell.row * cellHeight + 1,
-      Math.max(1, cellWidth - 2),
-      Math.max(1, cellHeight - 2),
-    );
-  }
-  ctx.restore();
-}
-
-function drawSectionFocus(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  grid: MinecraftGrid,
-  sectionSize: number,
-  sectionIndex: number,
-) {
-  const sectionColumns = Math.ceil(grid.columns / sectionSize);
-  const sectionColumn = sectionIndex % sectionColumns;
-  const sectionRow = Math.floor(sectionIndex / sectionColumns);
-  const cellWidth = width / grid.columns;
-  const cellHeight = height / grid.rows;
-  const x = sectionColumn * sectionSize * cellWidth;
-  const y = sectionRow * sectionSize * cellHeight;
-  const focusWidth = Math.min(sectionSize, grid.columns - sectionColumn * sectionSize) * cellWidth;
-  const focusHeight = Math.min(sectionSize, grid.rows - sectionRow * sectionSize) * cellHeight;
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
-  ctx.fillRect(0, 0, width, y);
-  ctx.fillRect(0, y + focusHeight, width, height - y - focusHeight);
-  ctx.fillRect(0, y, x, focusHeight);
-  ctx.fillRect(x + focusWidth, y, width - x - focusWidth, focusHeight);
-  ctx.strokeStyle = '#ffd166';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(x + 1.5, y + 1.5, Math.max(1, focusWidth - 3), Math.max(1, focusHeight - 3));
-  ctx.restore();
-}
-
-function blockIdsFromMinecraftImage(image: ImageData) {
-  const blockIds: string[] = [];
-  for (let offset = 0; offset < image.data.length; offset += 4) {
-    const block = MINECRAFT_BLOCKS.find(
-      (candidate) =>
-        candidate.color.r === image.data[offset] &&
-        candidate.color.g === image.data[offset + 1] &&
-        candidate.color.b === image.data[offset + 2],
-    );
-    blockIds.push(block?.id ?? MINECRAFT_BLOCKS[0].id);
-  }
-  return blockIds;
-}
-
-function minecraftImageFromBlockIds(
-  source: ImageData,
-  blockIds: string[],
-) {
-  const data = new Uint8ClampedArray(source.data);
-  blockIds.forEach((blockId, index) => {
-    const block =
-      MINECRAFT_BLOCKS.find((candidate) => candidate.id === blockId) ??
-      MINECRAFT_BLOCKS[0];
-    const offset = index * 4;
-    data[offset] = block.color.r;
-    data[offset + 1] = block.color.g;
-    data[offset + 2] = block.color.b;
-    data[offset + 3] = 255;
-  });
-  return new ImageData(data, source.width, source.height);
-}
-
-function materialsFromBlockIds(blockIds: string[]): MinecraftMaterial[] {
-  const counts = new Map<string, number>();
-  blockIds.forEach((blockId) => {
-    counts.set(blockId, (counts.get(blockId) ?? 0) + 1);
-  });
-  return MINECRAFT_BLOCKS.flatMap((block) => {
-    const count = counts.get(block.id) ?? 0;
-    return count > 0 ? [{ ...block, count }] : [];
-  }).sort((a, b) => b.count - a.count);
 }
 
 function rememberImageForMinecraftMode(image: HTMLImageElement, sourceId: string) {
@@ -247,6 +114,7 @@ export function PixelConverter({
   mode = 'pixel',
   minecraftTool = 'planner',
   inputId = 'pixvael-image-input',
+  defaultMinecraftGridWidth,
 }: Props) {
   const isMinecraftMode = mode === 'minecraft';
   const isMinecraftMaker = isMinecraftMode && minecraftTool === 'maker';
@@ -269,7 +137,26 @@ export function PixelConverter({
   const [dither, setDither] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [targetBlocksAcross, setTargetBlocksAcross] = useState(48);
+  const [targetBlocksAcross, setTargetBlocksAcross] = useState(() => {
+    const width = defaultMinecraftGridWidth;
+    return width !== undefined &&
+      Number.isInteger(width) &&
+      width >= MINECRAFT_GRID_MIN &&
+      width <= MINECRAFT_GRID_MAX
+      ? width
+      : 48;
+  });
+
+  // 带参直达:客户端读取 URL ?width= 覆盖初始网格宽度(如 /minecraft-pixel-art?width=32)。
+  // 放在客户端读取而非页面层 searchParams,让 4 个 minecraft 页保持静态预渲染(SEO)。
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const width = parseGridWidthParam(params.get('width') ?? undefined);
+    if (width !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- mount 后仅一次的外部值同步,非级联渲染
+      setTargetBlocksAcross(width);
+    }
+  }, []);
   const [showGrid, setShowGrid] = useState(true);
   const [minecraftGrid, setMinecraftGrid] = useState<MinecraftGrid | null>(null);
   const [minecraftMaterials, setMinecraftMaterials] = useState<MinecraftMaterial[]>([]);
@@ -869,11 +756,9 @@ export function PixelConverter({
   );
 
   const handleDownload = useCallback(() => {
-    if (!fullCanvasRef.current) return;
-    const link = document.createElement('a');
-    link.download = 'pixvael-pixel-art.png';
-    link.href = fullCanvasRef.current.toDataURL('image/png');
-    link.click();
+    const canvas = fullCanvasRef.current;
+    if (!canvas) return;
+    downloadCanvasPng(canvas, 'pixvael-pixel-art.png');
     trackPixelEvent(PIXVAEL_EVENTS.imageDownloaded, {
       export_type: 'png',
       grid_columns: minecraftGrid?.columns,
@@ -891,25 +776,11 @@ export function PixelConverter({
 
   const handleMaterialsDownload = useCallback(() => {
     if (!minecraftGrid || minecraftMaterials.length === 0) return;
-    const rows = [
-      'Block,Count',
-      ...minecraftMaterials.map(
-        (material) => `"${material.name.replaceAll('"', '""')}",${material.count}`,
-      ),
-      '',
-      `Grid,${minecraftGrid.columns} x ${minecraftGrid.rows}`,
-      `Total blocks,${minecraftMaterials.reduce(
-        (sum, material) => sum + material.count,
-        0,
-      )}`,
-    ];
-    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = 'pixvael-minecraft-materials.csv';
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadMaterialsCsv(
+      minecraftMaterials,
+      minecraftGrid,
+      'pixvael-minecraft-materials.csv',
+    );
     trackPixelEvent(PIXVAEL_EVENTS.materialsExported, {
       export_type: 'csv',
       grid_columns: minecraftGrid.columns,
@@ -925,77 +796,12 @@ export function PixelConverter({
   const handleBlueprintDownload = useCallback(() => {
     const result = minecraftResultRef.current;
     if (!minecraftGrid || !result) return;
-    const cellSize = 16;
-    const leftMargin = 64;
-    const topMargin = 96;
-    const rightMargin = 24;
-    const bottomMargin = 40;
-    const canvas = document.createElement('canvas');
-    canvas.width = leftMargin + minecraftGrid.columns * cellSize + rightMargin;
-    canvas.height = topMargin + minecraftGrid.rows * cellSize + bottomMargin;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.fillStyle = '#08090b';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#f6f1df';
-    ctx.font = 'bold 24px monospace';
-    ctx.fillText('PIXVAEL MINECRAFT BLUEPRINT', leftMargin, 32);
-    ctx.fillStyle = '#b8ff3d';
-    ctx.font = '14px monospace';
-    ctx.fillText(
-      `${minecraftGrid.columns} x ${minecraftGrid.rows} blocks / ${sectionSize} x ${sectionSize} sections`,
-      leftMargin,
-      58,
+    downloadBlueprintPng(
+      result,
+      minecraftGrid,
+      sectionSize,
+      'pixvael-minecraft-blueprint.png',
     );
-
-    const imageCanvas = document.createElement('canvas');
-    imageCanvas.width = result.width;
-    imageCanvas.height = result.height;
-    imageCanvas.getContext('2d')?.putImageData(result, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(
-      imageCanvas,
-      leftMargin,
-      topMargin,
-      result.width * cellSize,
-      result.height * cellSize,
-    );
-
-    ctx.font = '11px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let column = 0; column <= minecraftGrid.columns; column++) {
-      const x = leftMargin + column * cellSize + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(x, topMargin);
-      ctx.lineTo(x, topMargin + minecraftGrid.rows * cellSize);
-      ctx.strokeStyle = column % sectionSize === 0 ? 'rgba(255,209,102,0.9)' : 'rgba(0,0,0,0.42)';
-      ctx.lineWidth = column % sectionSize === 0 ? 2 : 1;
-      ctx.stroke();
-      if (column < minecraftGrid.columns && column % sectionSize === 0) {
-        ctx.fillStyle = '#ffd166';
-        ctx.fillText(String(column + 1), x + (cellSize * Math.min(sectionSize, minecraftGrid.columns - column)) / 2, topMargin - 14);
-      }
-    }
-    for (let row = 0; row <= minecraftGrid.rows; row++) {
-      const y = topMargin + row * cellSize + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(leftMargin, y);
-      ctx.lineTo(leftMargin + minecraftGrid.columns * cellSize, y);
-      ctx.strokeStyle = row % sectionSize === 0 ? 'rgba(255,209,102,0.9)' : 'rgba(0,0,0,0.42)';
-      ctx.lineWidth = row % sectionSize === 0 ? 2 : 1;
-      ctx.stroke();
-      if (row < minecraftGrid.rows && row % sectionSize === 0) {
-        ctx.fillStyle = '#ffd166';
-        ctx.fillText(String(row + 1), leftMargin - 22, y + (cellSize * Math.min(sectionSize, minecraftGrid.rows - row)) / 2);
-      }
-    }
-
-    const link = document.createElement('a');
-    link.download = 'pixvael-minecraft-blueprint.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
     trackPixelEvent(PIXVAEL_EVENTS.blueprintExported, {
       export_type: 'full_blueprint_png',
       grid_columns: minecraftGrid.columns,
@@ -1059,17 +865,9 @@ export function PixelConverter({
   const activeSectionIsComplete =
     activeSectionCells.length > 0 &&
     activeSectionCompleted === activeSectionCells.length;
-  const activeSectionMaterials = Array.from(
-    activeSectionCells.reduce((counts, { block }) => {
-      counts.set(block.id, (counts.get(block.id) ?? 0) + 1);
-      return counts;
-    }, new Map<string, number>()),
-  )
-    .map(([blockId, count]) => ({
-      block: MINECRAFT_BLOCKS.find((block) => block.id === blockId) ?? MINECRAFT_BLOCKS[0],
-      count,
-    }))
-    .sort((a, b) => b.count - a.count);
+  const activeSectionMaterials = materialsFromBlockIds(
+    activeSectionCells.map(({ block }) => block.id),
+  ).map((material) => ({ block: material, count: material.count }));
   const editedCellCount = minecraftCellBlockIds.reduce(
     (count, blockId, index) =>
       count + (blockId !== originalMinecraftCellBlockIds[index] ? 1 : 0),
@@ -1082,7 +880,6 @@ export function PixelConverter({
     const fullCanvas = fullCanvasRef.current;
     if (!currentResult || !previewBase || !fullCanvas) return;
     const nextData = new Uint8ClampedArray(currentResult.data);
-    const counts = new Map<string, number>();
     nextBlockIds.forEach((blockId, index) => {
       const block =
         MINECRAFT_BLOCKS.find((candidate) => candidate.id === blockId) ??
@@ -1092,7 +889,6 @@ export function PixelConverter({
       nextData[offset + 1] = block.color.g;
       nextData[offset + 2] = block.color.b;
       nextData[offset + 3] = 255;
-      counts.set(block.id, (counts.get(block.id) ?? 0) + 1);
     });
     const nextResult = new ImageData(
       nextData,
@@ -1122,12 +918,7 @@ export function PixelConverter({
       fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
       fullCtx.drawImage(tinyCanvas, 0, 0, fullCanvas.width, fullCanvas.height);
     }
-    setMinecraftMaterials(
-      MINECRAFT_BLOCKS.flatMap((block) => {
-        const count = counts.get(block.id) ?? 0;
-        return count > 0 ? [{ ...block, count }] : [];
-      }).sort((a, b) => b.count - a.count),
-    );
+    setMinecraftMaterials(materialsFromBlockIds(nextBlockIds));
     setMinecraftCellBlockIds(nextBlockIds);
   }
 
@@ -1284,49 +1075,17 @@ export function PixelConverter({
 
   function downloadActiveSectionBlueprint() {
     if (!minecraftGrid || activeSectionCells.length === 0) return;
-    const columns = sectionEndColumn - sectionStartColumn;
-    const rows = sectionEndRow - sectionStartRow;
-    const cellSize = 44;
-    const leftMargin = 58;
-    const topMargin = 82;
-    const canvas = document.createElement('canvas');
-    canvas.width = leftMargin + columns * cellSize + 24;
-    canvas.height = topMargin + rows * cellSize + 30;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.fillStyle = '#08090b';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#f6f1df';
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText(`PIXVAEL / ZONE ${activeSectionIndex + 1}`, leftMargin, 26);
-    ctx.fillStyle = '#b8ff3d';
-    ctx.font = '12px monospace';
-    ctx.fillText(
-      `X ${sectionStartColumn + 1}-${sectionEndColumn} / Y ${sectionStartRow + 1}-${sectionEndRow}`,
-      leftMargin,
-      50,
+    downloadZoneBlueprintPng(
+      {
+        cells: activeSectionCells,
+        startColumn: sectionStartColumn,
+        startRow: sectionStartRow,
+        endColumn: sectionEndColumn,
+        endRow: sectionEndRow,
+        activeSectionIndex,
+      },
+      `pixvael-zone-${activeSectionIndex + 1}.png`,
     );
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (const { cell, block } of activeSectionCells) {
-      const localColumn = cell.column - sectionStartColumn;
-      const localRow = cell.row - sectionStartRow;
-      const x = leftMargin + localColumn * cellSize;
-      const y = topMargin + localRow * cellSize;
-      ctx.fillStyle = rgbValue(block.color);
-      ctx.fillRect(x, y, cellSize, cellSize);
-      ctx.strokeStyle = 'rgba(0,0,0,0.52)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
-      ctx.fillStyle = '#ffd166';
-      ctx.font = '10px monospace';
-      if (localRow === 0) ctx.fillText(String(cell.column + 1), x + cellSize / 2, topMargin - 12);
-      if (localColumn === 0) ctx.fillText(String(cell.row + 1), leftMargin - 18, y + cellSize / 2);
-    }
-    const link = document.createElement('a');
-    link.download = `pixvael-zone-${activeSectionIndex + 1}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
     trackPixelEvent(PIXVAEL_EVENTS.blueprintExported, {
       export_type: 'zone_blueprint_png',
       grid_columns: minecraftGrid.columns,
@@ -1792,8 +1551,9 @@ export function PixelConverter({
               Generating comparison variants...
             </div>
           ) : (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {converterPreviews.map((preview) => {
+            <>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {converterPreviews.map((preview) => {
                 const selected = targetBlocksAcross === preview.width;
                 const label =
                   preview.width <= 24
@@ -1837,6 +1597,25 @@ export function PixelConverter({
                 );
               })}
             </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--line)] pt-4">
+              <p className="w-full font-mono text-xs text-[var(--paper-muted)]">
+                Selected plan: {targetBlocksAcross} blocks — open it in the next
+                tool (your source image carries over in this browser tab).
+              </p>
+              <a
+                href={`/minecraft-pixel-art?width=${targetBlocksAcross}`}
+                className="pixel-button text-sm"
+              >
+                Open in build planner
+              </a>
+              <a
+                href={`/minecraft-pixel-art-maker?width=${targetBlocksAcross}`}
+                className="pixel-button text-sm"
+              >
+                Refine blocks in maker
+              </a>
+            </div>
+            </>
           )}
         </section>
       )}

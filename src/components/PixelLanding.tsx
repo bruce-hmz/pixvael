@@ -22,6 +22,7 @@ type PixelLandingProps = {
   mode?: 'pixel' | 'minecraft';
   minecraftTool?: 'planner' | 'maker' | 'converter';
   minecraftStep?: 'convert' | 'compare' | 'edit' | 'build';
+  defaultMinecraftGridWidth?: number; // ?width= 带参跳转的初始网格宽度
   facts?: string[];
   children?: ReactNode;
   faqs?: FaqItem[];
@@ -41,6 +42,7 @@ export function PixelLanding({
       : minecraftTool === 'converter'
         ? 'compare'
         : 'build',
+  defaultMinecraftGridWidth,
   facts = ['local canvas', 'PNG export', 'no signup'],
   children,
   faqs,
@@ -191,6 +193,7 @@ export function PixelLanding({
             defaultPaletteId={defaultPaletteId}
             mode={mode}
             minecraftTool={minecraftTool}
+            defaultMinecraftGridWidth={defaultMinecraftGridWidth}
           />
         </div>
       </section>

@@ -189,6 +189,9 @@ export function BeforeAfter() {
       >
         {/* SSR 静态图:首屏 LCP 元素,HTML 解析即显示,不再等 JS canvas 绘制完成。
             canvas onload 绘制后会覆盖它;CSS filter 预匹配 canvas 的调色,减少切换跳变 */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- 有意的 LCP 设计(commit 77e8988):
+            静态 SSR img 作 LCP 兜底、canvas 交互在其上层;next/image 的包装与优化会削弱对
+            LCP 元素的 srcset/preload 控制,故刻意使用原生 img */}
         <img
           src={HERO_CASES[0].src}
           srcSet="/hero-portrait-v2-640.avif 640w, /hero-portrait-v2-960.avif 960w, /hero-portrait-v2-1280.avif 1280w, /hero-portrait-v2.avif 1600w"
