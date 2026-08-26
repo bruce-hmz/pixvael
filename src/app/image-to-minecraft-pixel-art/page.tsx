@@ -98,7 +98,12 @@ export default function ImageToMinecraftPixelArtPage() {
           <a href="/minecraft-pixel-art-converter" className="text-[var(--pixel-lime)] underline">
             size converter
           </a>{' '}
-          shows all four side by side.
+          shows all four side by side. Prefer an art-first name for the same
+          job? The{' '}
+          <a href="/minecraft-pixel-art-generator" className="text-[var(--pixel-lime)] underline">
+            Minecraft pixel art generator
+          </a>{' '}
+          runs this identical conversion.
         </p>
       </section>
 

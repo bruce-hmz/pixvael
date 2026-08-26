@@ -34,6 +34,12 @@ export function Footer() {
             Image→MC
           </Link>
           <Link
+            href="/minecraft-pixel-art-generator"
+            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+          >
+            Generator
+          </Link>
+          <Link
             href="/minecraft-pixel-art-maker"
             className="hidden hover:text-[var(--pixel-lime)] md:inline"
           >

@@ -113,7 +113,15 @@ export default function PictureToPixelArtPage() {
           >
             build planner
           </a>{' '}
-          maps it to blocks with material counts and blueprints.
+          maps it to blocks with material counts and blueprints. New to the
+          tool overall? The general{' '}
+          <a
+            href="/image-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            image to pixel art
+          </a>{' '}
+          guide explains every control from first principles.
         </p>
       </section>
 

@@ -291,7 +291,16 @@ export default function Home() {
           limited palette like PICO-8 or Game Boy, or add Floyd-Steinberg
           dithering to fake extra shades. Because the whole image-to-pixel-art
           conversion runs in your browser, the photo never leaves your device
-          and the preview updates the moment you move a slider.
+          and the preview updates the moment you move a slider. For a
+          walkthrough of every control — grid sizes by subject, palette
+          choices, and where each dedicated converter fits — see the{' '}
+          <a
+            href="/image-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            image to pixel art guide
+          </a>
+          .
         </p>
       </section>
 

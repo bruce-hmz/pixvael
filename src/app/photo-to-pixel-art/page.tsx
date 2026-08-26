@@ -67,6 +67,8 @@ export default function PhotoToPixelArtPage() {
           animal readable. Landscapes and skies need dithering most: smooth
           gradients band badly under plain quantization, and Floyd-Steinberg
           error diffusion is what keeps a sunset looking like a sunset.
+          However you start, turning a photo into pixel art comes down to the
+          same three dials — block size, palette, and dithering.
         </p>
       </section>
 
