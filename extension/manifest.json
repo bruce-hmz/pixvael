@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Image to Pixel Art Converter — Pixvael",
+  "version": "1.0.0",
+  "description": "Right-click any image → Convert to Pixel Art with Pixvael. Free, private, no upload, no signup.",
+  "homepage_url": "https://pixvael.com",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Pixvael — Image to Pixel Art"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["contextMenus", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"]
+}

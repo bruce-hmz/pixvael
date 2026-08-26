@@ -581,7 +581,7 @@ export function PixelConverter({
     restoredImage.src = rememberedImage;
   }, [image, isMinecraftMode]);
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback((file: File, inputMethod: 'file_or_drop' | 'chrome_extension' = 'file_or_drop') => {
     setError(null);
     setIsRestoredImage(false);
     setConverterPreviews([]);
@@ -596,7 +596,7 @@ export function PixelConverter({
     trackPixelEvent(PIXVAEL_EVENTS.uploadStarted, {
       file_type: file.type.slice('image/'.length) || 'unknown',
       file_size_kb: Math.max(1, Math.round(file.size / 1024)),
-      input_method: 'file_or_drop',
+      input_method: inputMethod,
     });
     const token = ++tokenRef.current;
     const url = URL.createObjectURL(file);
@@ -636,6 +636,40 @@ export function PixelConverter({
     };
     img.src = url;
   }, [isMinecraftMode, trackPixelEvent]);
+
+  // Chrome 插件导入:插件抓取右键图片后向页面 postMessage,这里转成 File 复用 handleFile。
+  // 契约(与 extension/background.js 对应):插件轮询 documentElement 上的
+  // data-pixvael-import-ready 标记,就绪后发 { source: 'pixvael-extension', dataUrl }。
+  useEffect(() => {
+    const importFromExtension = (event: MessageEvent) => {
+      const data = event.data as { source?: unknown; dataUrl?: unknown } | null;
+      if (
+        !data ||
+        data.source !== 'pixvael-extension' ||
+        typeof data.dataUrl !== 'string' ||
+        !data.dataUrl.startsWith('data:image/')
+      ) {
+        return;
+      }
+      const dataUrl = data.dataUrl;
+      void (async () => {
+        try {
+          const blob = await (await fetch(dataUrl)).blob();
+          const type = blob.type || 'image/png';
+          const name = `chrome-extension-import.${type.split('/')[1] ?? 'png'}`;
+          handleFile(new File([blob], name, { type }), 'chrome_extension');
+        } catch {
+          setError('The image from the extension could not be loaded.');
+        }
+      })();
+    };
+    window.addEventListener('message', importFromExtension);
+    document.documentElement.dataset.pixvaelImportReady = 'true';
+    return () => {
+      window.removeEventListener('message', importFromExtension);
+      delete document.documentElement.dataset.pixvaelImportReady;
+    };
+  }, [handleFile]);
 
   const cellFromPointer = useCallback(
     (event: React.MouseEvent<HTMLCanvasElement>) => {

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Chrome 插件为纯 JS service worker(chrome.* API),不参与 Next 构建,单独打包上架
+    "extension/**",
   ]),
 ]);
 
