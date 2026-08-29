@@ -337,6 +337,59 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="pixel-panel mt-16 p-6 sm:p-8">
+        <p className="terminal-label">every source</p>
+        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+          One engine, a converter page per source
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Every Pixvael page runs the same local converter, preset for what you
+          bring it. Bring a{' '}
+          <a
+            href="/jpg-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            JPG
+          </a>
+          , a{' '}
+          <a
+            href="/png-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            PNG
+          </a>{' '}
+          (transparency preserved), or a{' '}
+          <a
+            href="/webp-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            WebP
+          </a>
+          ; the{' '}
+          <a
+            href="/photo-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            photo
+          </a>{' '}
+          and{' '}
+          <a
+            href="/picture-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            picture
+          </a>{' '}
+          pages add subject-based recipes, and the{' '}
+          <a
+            href="/pixel-art-converter"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            pixel art converter
+          </a>{' '}
+          frames the tool by format and export.
+        </p>
+      </section>
+
       <FaqSection faqs={faqs} faqTitle="Image to Pixel Art FAQ" />
 
       <JsonLd data={buildOrganizationSchema()} />
