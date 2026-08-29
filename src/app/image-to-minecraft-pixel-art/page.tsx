@@ -56,6 +56,15 @@ export default function ImageToMinecraftPixelArtPage() {
       mode="minecraft"
       minecraftStep="convert"
       facts={['image input', 'block mapping', 'materials CSV']}
+      howTo={{
+        name: 'How to turn an image into Minecraft pixel art',
+        steps: [
+          { name: 'Drop in your image', text: 'Load any image from your device; it is mapped to Minecraft blocks locally, with no upload.' },
+          { name: 'Choose the grid width', text: 'Set how many blocks wide the build should be — 32 is a good default for a wall build.' },
+          { name: 'Preview the block map', text: 'Check build lines and block colors against common Minecraft blocks before committing.' },
+          { name: 'Export the plan', text: 'Download the blueprint PNG and the materials CSV so you know exactly which blocks to gather.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

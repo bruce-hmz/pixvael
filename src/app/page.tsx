@@ -5,7 +5,32 @@ import { BeforeAfter } from '@/components/BeforeAfter';
 import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
 import { TrackedModeLink } from '@/components/TrackedModeLink';
-import { buildBreadcrumbSchema, buildWebAppSchema, buildFaqSchema, buildOrganizationSchema } from '@/lib/structured-data';
+import {
+  buildBreadcrumbSchema,
+  buildWebAppSchema,
+  buildFaqSchema,
+  buildOrganizationSchema,
+  buildHowToSchema,
+  type HowTo,
+} from '@/lib/structured-data';
+
+const HOME_HOW_TO: HowTo = {
+  name: 'How to Turn an Image into Pixel Art',
+  steps: [
+    {
+      name: 'Drop an image into the converter',
+      text: 'Bring in a JPG, PNG, or WebP from your device. The conversion runs in your browser, so the photo never leaves it.',
+    },
+    {
+      name: 'Adjust blocks, palette, and dithering',
+      text: 'Slice the image into a block grid, keep full color or snap to PICO-8 or Game Boy, and add Floyd-Steinberg dithering for smoother shading.',
+    },
+    {
+      name: 'Export a crisp PNG',
+      text: 'Download hard-edged pixel art that scales without blur — free, no signup, no watermark.',
+    },
+  ],
+};
 
 // 首屏交互工具懒加载:PixelConverter 是 76KB/1991 行的 client 组件,在 hero 下方,
 // 不在首屏视觉区。next/dynamic 把它代码分割到独立 chunk,移出首屏关键 JS 以改善 FCP/TBT
@@ -302,6 +327,19 @@ export default function Home() {
           </a>
           .
         </p>
+        <ol className="mt-6 grid gap-4 md:grid-cols-3">
+          {HOME_HOW_TO.steps.map((step, i) => (
+            <li className="pixel-panel-raised p-5" key={step.name}>
+              <p className="font-mono text-xs text-[var(--pixel-lime)]">
+                step {String(i + 1).padStart(2, '0')}
+              </p>
+              <p className="mt-2 font-black text-[var(--paper)]">{step.name}</p>
+              <p className="mt-2 leading-7 text-[var(--paper-muted)]">
+                {step.text}
+              </p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className="mt-16 grid gap-6 md:grid-cols-2">
@@ -398,6 +436,7 @@ export default function Home() {
           image: 'https://pixvael.com/hero-portrait-v2.jpg',
         })}
       />
+      <JsonLd data={buildHowToSchema(HOME_HOW_TO)} />
       <JsonLd data={buildFaqSchema(faqs)} />
       <JsonLd
         data={buildBreadcrumbSchema([

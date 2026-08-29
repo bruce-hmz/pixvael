@@ -70,6 +70,15 @@ export default function MinecraftPixelArtPage() {
         mode="minecraft"
         minecraftStep="build"
         facts={['blueprint', 'materials', 'saved progress']}
+        howTo={{
+          name: 'How to build a Minecraft blueprint from an image',
+          steps: [
+            { name: 'Turn your image into a plan', text: 'Load an image and map its colors onto common Minecraft blocks in your browser.' },
+            { name: 'Set the grid width', text: 'Choose how wide the build is; the planner breaks it into sections for larger builds.' },
+            { name: 'Build by sections with saved progress', text: 'Work through the build zone by zone — progress is saved locally so you can come back.' },
+            { name: 'Export blueprint and materials', text: 'Download the pixel PNG, coordinate blueprint, and material CSV to guide the build.' },
+          ],
+        }}
         faqs={faqs}
       >
         <InfoGrid

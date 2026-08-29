@@ -51,6 +51,15 @@ export default function WebpToPixelArtPage() {
       defaultPixelSize={8}
       defaultPaletteId="full"
       facts={['WebP input', 'PNG output', 'no upload']}
+      howTo={{
+        name: 'How to convert a WebP to pixel art',
+        steps: [
+          { name: 'Load the WebP file', text: 'Drop any WebP image in from your device. It decodes and converts entirely in your browser — no upload.' },
+          { name: 'Set the block size', text: 'Pick a coarse grid for a chunky retro read or a finer grid to keep more detail from the original.' },
+          { name: 'Choose a palette and dithering', text: 'Full color, 8-bit PICO-8, or four-color Game Boy; add Floyd-Steinberg dithering when gradients band.' },
+          { name: 'Export as PNG', text: 'Save the result as a PNG that works anywhere WebP support is missing.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

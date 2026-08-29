@@ -4,8 +4,16 @@ Image to pixel art converter. Free, private, runs entirely in the browser.
 
 ## Pages
 - / : Image to pixel art (main converter)
+- /image-to-pixel-art : in-depth guide for the image to pixel art converter
+- /pixel-art-converter : universal converter preset for any image format
+- /jpg-to-pixel-art : JPG photo to pixel art converter
+- /png-to-pixel-art : PNG to pixel art with transparency intact (logos, sprites)
+- /webp-to-pixel-art : WebP to pixel art converter with PNG export
+- /photo-to-pixel-art : photo to pixel art with subject-specific block sizes
+- /picture-to-pixel-art : picture to pixel art converter (any source)
 - /minecraft-pixel-art : section-based build planner with progress tracking
 - /image-to-minecraft-pixel-art : fast image-to-block conversion workflow
+- /minecraft-pixel-art-generator : generate a Minecraft block plan from any image
 - /minecraft-pixel-art-maker : editable block painter with undo, redo, and restore
 - /minecraft-pixel-art-converter : side-by-side 24/32/48/64 block comparison
 

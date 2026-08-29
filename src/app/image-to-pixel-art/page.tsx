@@ -56,6 +56,15 @@ export default function ImageToPixelArtPage() {
       defaultPixelSize={12}
       defaultPaletteId="full"
       facts={['any image format', 'local conversion', 'PNG export']}
+      howTo={{
+        name: 'How to convert an image to pixel art',
+        steps: [
+          { name: 'Drop in your image', text: 'Load a JPG, PNG, or WebP straight from your device. The conversion runs locally, so the file never leaves your browser.' },
+          { name: 'Set the grid size', text: 'Use 8-16 blocks to keep facial features on portraits, or 24-32 blocks for logos and icons that need harder edges.' },
+          { name: 'Pick a palette and dithering', text: 'Keep full color for realism, snap to PICO-8 or Game Boy for a retro look, and toggle Floyd-Steinberg dithering to recover shading.' },
+          { name: 'Export the PNG', text: 'Download a scaled PNG — output uses nearest-neighbor scaling, so block edges stay crisp at any size.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

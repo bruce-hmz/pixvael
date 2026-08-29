@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { HowToSteps } from '@/components/HowToSteps';
 import { MinecraftWorkflowLink } from '@/components/MinecraftWorkflowLink';
 import { PixelConverter } from '@/components/PixelConverter';
+import type { HowTo } from '@/lib/structured-data';
 
 export type FaqItem = {
   question: string;
@@ -26,6 +28,7 @@ type PixelLandingProps = {
   facts?: string[];
   children?: ReactNode;
   faqs?: FaqItem[];
+  howTo?: HowTo;
 };
 
 export function PixelLanding({
@@ -46,6 +49,7 @@ export function PixelLanding({
   facts = ['local canvas', 'PNG export', 'no signup'],
   children,
   faqs,
+  howTo,
 }: PixelLandingProps) {
   return (
     <div className="page-shell">
@@ -197,6 +201,8 @@ export function PixelLanding({
           />
         </div>
       </section>
+
+      {howTo && <HowToSteps howTo={howTo} />}
 
       {children}
 

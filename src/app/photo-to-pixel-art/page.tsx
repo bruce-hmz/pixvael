@@ -51,6 +51,15 @@ export default function PhotoToPixelArtPage() {
       defaultPixelSize={8}
       defaultPaletteId="full"
       facts={['photo input', 'PNG output', 'no upload']}
+      howTo={{
+        name: 'How to turn a photo into pixel art',
+        steps: [
+          { name: 'Drop in a photo', text: 'Use any photo from your camera roll or desktop. It stays on your device — conversion runs in the browser.' },
+          { name: 'Pick the right block size', text: 'Portraits keep their shape around 8-16 blocks; busy scenes need more blocks to stay readable.' },
+          { name: 'Choose palette and dithering', text: 'Full color for realism, or retro palettes for an 8-bit feel; dithering recovers shading in skies and skin tones.' },
+          { name: 'Export a sharp PNG', text: 'Download pixel art that stays crisp as an avatar, print, or profile image.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

@@ -51,6 +51,15 @@ export default function PictureToPixelArtPage() {
       defaultPixelSize={8}
       defaultPaletteId="full"
       facts={['any image', 'instant preview', 'PNG export']}
+      howTo={{
+        name: 'How to turn a picture into pixel art',
+        steps: [
+          { name: 'Load your picture', text: 'Any picture works — screenshots, illustrations, photos. It is processed locally and never uploaded.' },
+          { name: 'Tune the block size', text: 'Smaller blocks preserve detail, larger blocks read as bold pixel art. Adjust until the subject is clear.' },
+          { name: 'Control the look with palette and dithering', text: 'Choose full color, PICO-8, or Game Boy, then toggle dithering to fake extra shades.' },
+          { name: 'Export the PNG', text: 'Save a crisp, hard-edged PNG that scales without blur.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

@@ -55,6 +55,15 @@ export default function PixelArtConverterPage() {
       defaultPixelSize={12}
       defaultPaletteId="full"
       facts={['JPG · PNG · WebP', 'local conversion', 'PNG export']}
+      howTo={{
+        name: 'How to use the pixel art converter',
+        steps: [
+          { name: 'Bring any image', text: 'JPG, PNG, or WebP — drop it in and the converter runs right here in your browser with no upload.' },
+          { name: 'Set the grid', text: 'Choose how many blocks wide the result should be; the preview updates the moment you move the slider.' },
+          { name: 'Pick a palette, add dithering', text: 'Compare full color against retro palettes and toggle Floyd-Steinberg dithering for smoother shading.' },
+          { name: 'Export the result', text: 'Download a sharp PNG — free, no signup, no watermark.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

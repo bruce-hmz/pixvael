@@ -54,6 +54,15 @@ export default function MinecraftPixelArtMakerPage() {
       minecraftTool="maker"
       minecraftStep="edit"
       facts={['block painter', '20 materials', 'local export']}
+      howTo={{
+        name: 'How to edit Minecraft pixel art block by block',
+        steps: [
+          { name: 'Upload a photo', text: 'Generate a Minecraft block plan from any image, right in your browser.' },
+          { name: 'Paint, pick, or restore cells', text: 'Edit the generated art block by block with real Minecraft block colors.' },
+          { name: 'Check the updated materials', text: 'Every edit updates the export, so the material list always matches your build.' },
+          { name: 'Export the finished blueprint', text: 'Download the edited PNG, blueprint, and updated material list — all stored locally.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

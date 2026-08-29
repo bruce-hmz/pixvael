@@ -57,6 +57,15 @@ export default function MinecraftPixelArtGeneratorPage() {
       mode="minecraft"
       minecraftStep="convert"
       facts={['image input', 'block mapping', 'materials CSV']}
+      howTo={{
+        name: 'How to generate Minecraft pixel art',
+        steps: [
+          { name: 'Upload an image', text: 'Pick any picture to generate from. Everything runs in your browser — the image never leaves your device.' },
+          { name: 'Set the build width', text: 'Choose the grid width for your build; wider grids keep more detail but need more blocks.' },
+          { name: 'Review the generated block map', text: 'Check how your image maps onto Minecraft block colors and adjust the width if details are lost.' },
+          { name: 'Export materials and blueprint', text: 'Download the material list and blueprint so you can build it block by block in game.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

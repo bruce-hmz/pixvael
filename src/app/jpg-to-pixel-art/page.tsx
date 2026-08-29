@@ -51,6 +51,15 @@ export default function JpgToPixelArtPage() {
       defaultPixelSize={8}
       defaultPaletteId="retro"
       facts={['JPG input', 'PNG output', 'no upload']}
+      howTo={{
+        name: 'How to convert a JPG to pixel art',
+        steps: [
+          { name: 'Choose a JPG photo', text: 'Pick any JPG from your device — portraits, pets, and landscapes all convert well. Nothing is uploaded; the file stays in your browser.' },
+          { name: 'Match the block size to the subject', text: 'Start at 8 blocks for a bold read on photos, then raise it toward 16 or 24 if the subject loses its shape.' },
+          { name: 'Pick a palette and toggle dithering', text: 'Full color keeps photo realism; Game Boy or PICO-8 gives a retro look. Dithering restores shading in smooth gradients.' },
+          { name: 'Download the PNG', text: 'Export a sharp pixel-art PNG scaled with nearest-neighbor so block edges stay crisp at any size.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

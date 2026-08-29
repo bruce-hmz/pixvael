@@ -59,6 +59,15 @@ export default function MinecraftPixelArtConverterPage() {
       minecraftTool="converter"
       minecraftStep="compare"
       facts={['4 live variants', 'size comparison', 'private export']}
+      howTo={{
+        name: 'How to compare Minecraft conversion sizes',
+        steps: [
+          { name: 'Load your source image', text: 'Bring in the image you want to build. It stays in this browser tab while you compare.' },
+          { name: 'Compare four grid widths', text: 'See 24, 32, 48, and 64 blocks side by side with exact dimensions and material complexity.' },
+          { name: 'Pick the clearest size', text: 'Balance detail against build effort — compact grids are fast to build, detailed grids keep more of the image.' },
+          { name: 'Open and export the plan', text: 'Export the blueprint PNG and materials CSV for the size you chose.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

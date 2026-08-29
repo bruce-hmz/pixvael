@@ -51,6 +51,15 @@ export default function PngToPixelArtPage() {
       defaultPixelSize={4}
       defaultPaletteId="full"
       facts={['PNG input', 'alpha preserved', 'PNG output']}
+      howTo={{
+        name: 'How to convert a PNG to pixel art',
+        steps: [
+          { name: 'Drop your PNG', text: 'Load a PNG from your device — logos, sprites, and stickers are ideal sources. The conversion is fully local.' },
+          { name: 'Choose a fine grid', text: 'Simple graphics read best at low block sizes; start at 4 and adjust until the silhouette is clean.' },
+          { name: 'Snap to a palette', text: 'Map colors onto PICO-8 or Game Boy palettes for game-ready sprites, or keep full color for detailed logos.' },
+          { name: 'Export your pixel art', text: 'Download a crisp PNG with transparency intact, ready to use as a sprite, sticker, or icon.' },
+        ],
+      }}
       faqs={faqs}
     >
       <section className="pixel-panel mt-16 p-6 sm:p-8">

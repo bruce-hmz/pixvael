@@ -1,5 +1,8 @@
 export type Faq = { question: string; answer: string };
 
+export type HowToStepData = { name: string; text: string };
+export type HowTo = { name: string; steps: HowToStepData[] };
+
 export function buildFaqSchema(faqs: Faq[]) {
   return {
     '@context': 'https://schema.org',
@@ -39,6 +42,20 @@ export function buildWebAppSchema(options?: {
       priceCurrency: 'USD',
       url,
     },
+  };
+}
+
+export function buildHowToSchema(howTo: HowTo) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: howTo.name,
+    step: howTo.steps.map((s, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+    })),
   };
 }
 
