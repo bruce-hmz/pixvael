@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   description:
     'Plan a Minecraft pixel art build block by block. Choose your grid, map materials to blocks, track progress across sections, and export blueprints — free, no signup or upload.',
   alternates: { canonical: 'https://pixvael.com/minecraft-pixel-art' },
-  keywords: ['minecraft pixel art'],
   openGraph: {
     title: 'Minecraft Pixel Art — Block Plan Builder',
     description:

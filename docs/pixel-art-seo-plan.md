@@ -83,3 +83,68 @@ sitemap 已含全部路由（lastmod 已 bump 至 2026-08-26），手动提交�
 | 新增 `/pixel-art-converter` | 582 词，链接辐射全部格式/变体页 |
 | 互链 | 首页↔image-to、image-to-minecraft↔generator、image-to-pixel-art↔converter |
 | 其他 | photo 页写入 turn 短语；sitemap 注册 3 路由；验证：24 测试 + lint + build 全绿，canonical/结构化数据从产物 HTML 核验 |
+
+---
+
+## 七、GSC 首份数据快照（2026-08-26 导出，过去 3 个月）
+
+**总量：4 次点击 / 约 880 展示 / 全站平均排名 60-90。** 数据小于信噪比，只做方向判断：
+
+- **仅 3 个 URL 有曝光**：首页 468（排名 60.9）、`/minecraft-pixel-art` 366（64.9）、`/minecraft-pixel-art-maker` 45（**43.1，全站最好排名**）。jpg/png/webp/photo/picture/image-to-minecraft 等 6 个老内页 **0 曝光 → 首要疑点是收录问题，不是排名问题**，需逐条 URL 检查（16 条路由）。
+- **Minecraft 主题占非品牌曝光 ~19%**（约 160 展示，散布在 50+ 个 minecraft 词上）→ 印证 generator 页决策，minecraft 簇是站点真实主题重心。
+- **品牌错拼词**（pxelwa/picwel/pixval 等 ~25 展示，排名 4-25）来自 PH 发布的口碑流量，0 点击，SERP 呈现待优化（小问题）。
+- **竞品名词** `minecraftart.netlify.app` ~7 展示 → 存在一个同赛道 netlify 工具，其用户在按名搜。
+
+### 数据支持的新内页候选（按证据强度）
+
+| 优先级 | 候选页 | 证据（3 个月曝光） | 说明 |
+|---|---|---|---|
+| P0 | `/photo-to-minecraft-pixel-art` | ~20（minecraft photo/picture to pixel art 簇） | photo 变体打法镜像进 minecraft 簇 |
+| P1 | `/8-bit-image-converter` | 4（8/16 bit image converter） | 关键词文档层级 3 🟢，复古调色板现成 |
+| P1 | `/png-to-minecraft-pixel-art` | ~11（png×minecraft 交叉簇） | png 是格式词主力（透明度需求） |
+| P2 | how-to 教程页（how to turn image into minecraft pixel art） | 3-4 问句词 | 内容型，冲精选摘要 |
+| P2 | `/pixel-art-upscaler`（功能+页） | 4（upscale/resize pixel art online） | 需先加导出倍率功能；`schematic` 导出词（2 曝光）记为产品信号 |
+
+### 本源判断
+
+4 点击/3 个月 + 排名 60-90 = **权重与收录是瓶颈，不是页面数量**。内页扩张只有在老页全部收录、外链进场后才产生杠杆；当前顺序：① 诊断收录 ② 部署+提交新页 ③ 外链。
+
+### 收录诊断记录
+
+- 2026-08-26：13 个页面全量验证 HTTP 200（含当日新部署的 3 页）。A 组 7 条零曝光老页确认状态为**「已发现 - 尚未编入索引」**（抓取预算问题，非内容质量），已批量请求编入索引（B 组 3 条新页待提交）。
+- 2026-08-26 内链诊断：首页出站内链仅 2 条，页脚只链 Minecraft 簇 → **jpg/png/webp/photo/picture 5 个变体页构成内链孤岛**（仅互链，从首页不可达），是「已发现未编入」的直接成因。也解释了有曝光的 3 页恰好是首页 + hero 链接的 planner + 页脚全站链接的 maker。
+- 2026-08-26 修复：首页新增「One engine, a converter page per source」链接段（jpg/png/webp/photo/picture/pixel-art-converter 六条首页直达内链），待部署。
+- **复查节点（T+3~7 天）**：URL 检查看 A 组是否转为已收录；若「已抓取-尚未编入索引」反复出现，即为权重/质量信号，外线提级。
+- **回填节点（T+2~4 周）**：拉 GSC 数据对比本节快照。
+
+---
+
+## 八、主词闭环改造（2026-09-02，Semrush 数据修正版）
+
+### 关键词口径定案（Semrush 为准，SimilarWeb 只看相对量级）
+
+| 关键词 | Semrush 月搜 | 意图 | 结论 |
+|---|---|---|---|
+| minecraft pixel art generator | 4,400 | 商务 | 主词坐实，`/minecraft-pixel-art-generator` 为工具主页 |
+| image to minecraft pixel art | 1,000 | 信息 | 转换落地页（已有页升级，非新建） |
+| minecraft pixel art editor | **20** | 不可用 | **废词砍掉**：不建独立 editor 页，编辑做成 generator 页内步骤 |
+
+「KD 低 ≠ 有人搜」的活案例：editor 词 KD 28.2 看着容易，Semrush 实测月搜 20。SimilarWeb 口径系统性偏高（generator 18.5K vs Semrush 4.4K），单个数字不采信。
+
+长尾接法（不单独建页，正文/FAQ 聚合到主词页）：`minecraft image to pixel art`（2.8K，比种子词高）、`convert image to pixel art minecraft`（720）、`high resolution`（570）、`turn image into`（180）；generator 侧 litematica / bedrock / mural / map / block count 用诚实文案接（.schematic 可经 Litematica 转换，原生 .litematic 与 Bedrock 在路线图）。
+
+### 本轮落地（对应代码提交）
+
+1. **转换落地页升级**：正文织入换语序长尾 + 高分辨率段落，FAQ 5 条，与教程②互链。
+2. **教程层**：`/tutorials` hub + ① How to Make Pixel Art in Minecraft（8 分钟）+ ② Minecraft Image to Pixel Art: Complete Guide（15 分钟，对准 2.8K 词）；Article/FAQ/Breadcrumb schema 全 SSR；③ Litematica/Bedrock/Block Count 延后至功能补齐。
+3. **产品闭环（generator 页内）**：调色板 20→52 块（+16 羊毛/16 陶瓦，含版本元数据）、版本筛选（1.9+/1.12+/1.17+/latest）、`.schematic` 导出（经典 MCEdit 格式，vertical mural / flat map art 两种朝向，deepslate 走 AddBlocks+SchematicaMapping）、工程文件保存/续作（源图+编辑+进度单 JSON）。
+4. **TDH**：generator 标题 `Minecraft Pixel Art Generator — Free Online Block Art Tool`（title.absolute，不带品牌后缀）；**全站删 keywords meta**（哥飞：K 已死）；HowToSteps 步骤名升级 h3（全站 12 页统一 h2→h3 骨架）。
+5. **内链权重集中主词页**：首页 MC 卡片/workflow 侧栏/maker 页均以精确锚文本链 generator；Footer 增 Tutorials 并取消 MC 链接的 `hidden md:inline`（移动端可见性，§七发现的缺口）；修 webp 自链。
+
+### 验证
+
+46 测试（nbt/gzip 用 node:zlib 解回验证、schematic 双朝向 golden、工程文件 round-trip、版本过滤）+ lint + build 全绿；21 路由全静态预渲染，产物 HTML 核验 h1/h3/JSON-LD/无 keywords/canonical 均在源码中。
+
+### 站外待办
+
+GSC 提交 `/tutorials` ×3 + 更新后的 generator/落地页 URL；V2EX 分享创造 + Product Hunt（docs/promotion.md 与 producthunt-launch.md 素材已备）；T+2~4 周 GSC 回填对比 §七快照。

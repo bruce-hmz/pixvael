@@ -108,7 +108,20 @@ const showcaseCases = [
   {
     label: 'minecraft',
     title: 'Image to Minecraft Pixel Art',
-    body: 'Convert a scene into block-scale pixel art you can rebuild in a Minecraft world. Larger blocks read as chunks and are easier to place block by block.',
+    body: (
+      <>
+        Convert a scene into block-scale pixel art you can rebuild in a
+        Minecraft world. The{' '}
+        <a
+          href="/minecraft-pixel-art-generator"
+          className="text-[var(--pixel-lime)] underline"
+        >
+          minecraft pixel art generator
+        </a>{' '}
+        maps every cell to a real block, edits block by block, and exports
+        .schematic files with material counts.
+      </>
+    ),
     image: '/hero-minecraft.webp',
   },
 ];

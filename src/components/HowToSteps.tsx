@@ -16,7 +16,7 @@ export function HowToSteps({ howTo }: { howTo: HowTo }) {
             <p className="font-mono text-xs text-[var(--pixel-lime)]">
               step {String(i + 1).padStart(2, '0')}
             </p>
-            <p className="mt-2 font-black text-[var(--paper)]">{step.name}</p>
+            <h3 className="mt-2 font-black text-[var(--paper)]">{step.name}</h3>
             <p className="mt-2 leading-7 text-[var(--paper-muted)]">
               {step.text}
             </p>

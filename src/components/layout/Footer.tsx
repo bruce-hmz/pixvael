@@ -28,28 +28,34 @@ export function Footer() {
             Build planner
           </Link>
           <Link
-            href="/image-to-minecraft-pixel-art"
-            className="hidden hover:text-[var(--pixel-lime)] md:inline"
-          >
-            Image→MC
-          </Link>
-          <Link
             href="/minecraft-pixel-art-generator"
-            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+            className="hover:text-[var(--pixel-lime)]"
           >
             Generator
           </Link>
           <Link
+            href="/image-to-minecraft-pixel-art"
+            className="hover:text-[var(--pixel-lime)]"
+          >
+            Image→MC
+          </Link>
+          <Link
             href="/minecraft-pixel-art-maker"
-            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+            className="hover:text-[var(--pixel-lime)]"
           >
             Maker
           </Link>
           <Link
             href="/minecraft-pixel-art-converter"
-            className="hidden hover:text-[var(--pixel-lime)] md:inline"
+            className="hover:text-[var(--pixel-lime)]"
           >
             Converter
+          </Link>
+          <Link
+            href="/tutorials"
+            className="hover:text-[var(--pixel-lime)]"
+          >
+            Tutorials
           </Link>
           <span className="hidden md:inline">100%</span>
         </nav>

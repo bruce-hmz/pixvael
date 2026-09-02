@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   description:
     'Turn any JPG photo into crisp pixel art online. Pick a block size and palette, add dithering, and download a sharp PNG — free, no signup, nothing uploaded.',
   alternates: { canonical: pageUrl },
-  keywords: ['jpg to pixel art', 'jpeg to pixel art'],
   openGraph: {
     title: 'JPG to Pixel Art — Free Online Converter',
     description:

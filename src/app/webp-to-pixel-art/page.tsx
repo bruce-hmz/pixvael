@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   description:
     'Turn any WebP image into pixel art online. Choose block size, palette, and dithering, then download a sharp PNG — free, private, no upload.',
   alternates: { canonical: pageUrl },
-  keywords: ['webp to pixel art', 'webp pixel art converter'],
   openGraph: {
     title: 'WebP to Pixel Art — Free Online Converter',
     description:
@@ -83,15 +82,8 @@ export default function WebpToPixelArtPage() {
           WebP for web graphics, PNG for transparency, JPG for photos
         </h2>
         <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
-          Reach for the{' '}
-          <a
-            href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
-          >
-            WebP converter
-          </a>{' '}
-          when your source came from the web — screenshots, downloaded art,
-          browser-saved images. Use the{' '}
+          Reach for this WebP converter when your source came from the web —
+          screenshots, downloaded art, browser-saved images. Use the{' '}
           <a
             href="/png-to-pixel-art"
             className="text-[var(--pixel-lime)] underline"

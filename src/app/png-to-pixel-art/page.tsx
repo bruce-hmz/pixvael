@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   description:
     'Turn any PNG into pixel art online, keeping transparency for logos and sprites. Pick a block size and palette, add dithering, and export a crisp PNG — free, no signup.',
   alternates: { canonical: pageUrl },
-  keywords: ['png to pixel art', 'png pixel art converter'],
   openGraph: {
     title: 'PNG to Pixel Art — Free Online Converter',
     description:

@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   description:
     'Turn any photo into pixel art online. Get the right block size for portraits, pets, and scenery, pick a palette, and download a crisp PNG — free, private, no upload.',
   alternates: { canonical: pageUrl },
-  keywords: ['photo to pixel art', 'convert photo to pixel art'],
   openGraph: {
     title: 'Photo to Pixel Art — Free Online Converter',
     description:

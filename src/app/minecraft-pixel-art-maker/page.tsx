@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   description:
     'Make and edit Minecraft pixel art from any photo. Paint individual blocks, replace colors, and export a build blueprint locally.',
   alternates: { canonical: 'https://pixvael.com/minecraft-pixel-art-maker' },
-  keywords: ['minecraft pixel art maker', 'minecraft pixel art creator'],
   openGraph: {
     title: 'Minecraft Pixel Art Maker — Free Online Tool',
     description:
@@ -93,6 +92,11 @@ export default function MinecraftPixelArtMakerPage() {
           ; to compare sizes first, the{' '}
           <a href="/minecraft-pixel-art-converter" className="text-[var(--pixel-lime)] underline">
             size converter
+          </a>
+          . To convert, edit, and export a .schematic on a single page, start
+          at the{' '}
+          <a href="/minecraft-pixel-art-generator" className="text-[var(--pixel-lime)] underline">
+            minecraft pixel art generator
           </a>
           .
         </p>

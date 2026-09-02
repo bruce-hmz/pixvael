@@ -33,10 +33,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://pixvael.com/minecraft-pixel-art-converter',
   },
-  keywords: [
-    'minecraft pixel art converter',
-    'minecraft photo to pixel art',
-  ],
   openGraph: {
     title: 'Minecraft Pixel Art Converter — Free Online',
     description:

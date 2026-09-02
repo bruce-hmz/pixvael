@@ -32,11 +32,6 @@ export const metadata: Metadata = {
   description:
     'Convert any image to pixel art online. Tune grid size, palette, and dithering, then export a crisp PNG — free, no signup, and the image never leaves your device.',
   alternates: { canonical: pageUrl },
-  keywords: [
-    'image to pixel art',
-    'image to pixel art converter',
-    'convert image to pixel art',
-  ],
   openGraph: {
     title: 'Image to Pixel Art Converter — Free Online Tool',
     description:
