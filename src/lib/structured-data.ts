@@ -84,3 +84,35 @@ export function buildOrganizationSchema(options?: {
     logo: options?.logo ?? 'https://pixvael.com/logo.jpg',
   };
 }
+
+export function buildArticleSchema(options: {
+  headline: string;
+  description: string;
+  url: string;
+  datePublished: string;
+  dateModified?: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: options.headline,
+    description: options.description,
+    url: options.url,
+    mainEntityOfPage: options.url,
+    datePublished: options.datePublished,
+    ...(options.dateModified
+      ? { dateModified: options.dateModified }
+      : {}),
+    author: {
+      '@type': 'Organization',
+      name: 'Pixvael',
+      url: 'https://pixvael.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Pixvael',
+      url: 'https://pixvael.com',
+    },
+    image: 'https://pixvael.com/hero-minecraft.jpg',
+  };
+}

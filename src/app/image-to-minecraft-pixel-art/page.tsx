@@ -20,6 +20,16 @@ const faqs = [
       'Images with one clear subject, simple backgrounds, and strong contrast remain recognizable at practical Minecraft build sizes.',
   },
   {
+    question: 'How high resolution can the conversion go?',
+    answer:
+      'Up to 128 blocks wide. Detail improves noticeably from 48 toward 96-128, at the cost of materials — a 128 × 128 build is over 16,000 blocks, so read the material list first.',
+  },
+  {
+    question: 'Is there a full walkthrough of the workflow?',
+    answer:
+      'Yes — the Minecraft image to pixel art guide covers image prep, build size, block choice, conversion, editing, and export end to end, with the tool one click away at each step.',
+  },
+  {
     question: 'Does the source image leave my device?',
     answer:
       'No. Image decoding, color mapping, grid generation, and export all run inside your browser.',
@@ -31,10 +41,6 @@ export const metadata: Metadata = {
   description:
     'Turn a photo into Minecraft blocks in seconds. Pick a grid width and get an instant block map plus material CSV — free, no signup, nothing uploaded.',
   alternates: { canonical: 'https://pixvael.com/image-to-minecraft-pixel-art' },
-  keywords: [
-    'image to minecraft pixel art',
-    'convert image to minecraft pixel art',
-  ],
   openGraph: {
     title: 'Image to Minecraft Pixel Art — Free Online Converter',
     description:
@@ -113,6 +119,55 @@ export default function ImageToMinecraftPixelArtPage() {
             Minecraft pixel art generator
           </a>{' '}
           runs this identical conversion.
+        </p>
+      </section>
+
+      <section className="pixel-panel mt-8 p-6 sm:p-8">
+        <p className="terminal-label">under the hood</p>
+        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+          What Minecraft image to pixel art conversion actually does
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Builders phrase this job in every order — “image to Minecraft
+          pixel art”, “Minecraft image to pixel art”, “convert an image to
+          pixel art in Minecraft” — but under the hood it is one pipeline.
+          Your picture is scaled to the width you choose, then every cell is
+          matched to the nearest color in a buildable palette of more than
+          fifty blocks: sixteen wool shades, sixteen terracotta earth tones,
+          sixteen concretes, plus stone, deepslate, sandstone, and oak
+          planks. The preview you see is the literal block map — the same
+          grid that becomes the blueprint PNG and the material CSV — so what
+          you approve on screen is what you gather and place in game.
+        </p>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Want the whole journey written out step by step — image prep, size
+          choice, palette filtering, editing, and export? Read the{' '}
+          <a
+            href="/tutorials/minecraft-image-to-pixel-art-guide"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            Minecraft image to pixel art guide
+          </a>
+          , then come back and run the conversion here.
+        </p>
+      </section>
+
+      <section className="pixel-panel mt-8 p-6 sm:p-8">
+        <p className="terminal-label">resolution</p>
+        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
+          How much detail survives at high resolution
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Grid widths run from 16 to 128 blocks. At 32–48 wide a face or logo
+          stays recognizable and the material list stays survivable; push
+          toward high resolution — 96 or 128 blocks wide — and shading,
+          outlines, and fine detail start to survive the conversion too. The
+          trade is literal: a 128 × 128 grid is 16,384 blocks, so check the
+          material CSV before you commit to gathering that in survival. Start
+          small, confirm the silhouette reads, then re-convert at a higher
+          width — and feed the converter a source image with at least as many
+          pixels across as the blocks you plan to build, or it will be
+          inventing detail your picture never had.
         </p>
       </section>
 

@@ -14,12 +14,15 @@ const ROUTES = [
   '/photo-to-pixel-art',
   '/picture-to-pixel-art',
   '/pixel-art-converter',
+  '/tutorials',
+  '/tutorials/how-to-make-pixel-art-in-minecraft',
+  '/tutorials/minecraft-image-to-pixel-art-guide',
 ];
 
 // 站点级最后更新日期。每次内容更新后手动 bump。
 // 之前用 new Date() 让 lastmod 每次 build 都变 → Google 学会忽略该字段;
 // 改成固定日期让 Google 能正确判断页面新鲜度。
-const LAST_UPDATED = '2026-08-26';
+const LAST_UPDATED = '2026-09-02';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://pixvael.com';
