@@ -15,6 +15,31 @@ export function downloadCanvasPng(canvas: HTMLCanvasElement, filename: string) {
   triggerDownload(canvas.toDataURL('image/png'), filename);
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, filename);
+  URL.revokeObjectURL(url);
+}
+
+// .schematic(MCEdit 经典格式,gzip NBT),供 WorldEdit/Litematica 导入
+export function downloadSchematic(
+  schematic: Uint8Array,
+  filename: string,
+) {
+  downloadBlob(
+    new Blob([schematic as BlobPart], { type: 'application/octet-stream' }),
+    filename,
+  );
+}
+
+// 工程文件:源图 + 网格 + 编辑 + 进度,单个 JSON
+export function downloadProjectFile(json: string, filename: string) {
+  downloadBlob(
+    new Blob([json], { type: 'application/json' }),
+    filename,
+  );
+}
+
 export function downloadMaterialsCsv(
   materials: MinecraftMaterial[],
   grid: MinecraftGrid,

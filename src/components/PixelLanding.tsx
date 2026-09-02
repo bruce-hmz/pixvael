@@ -22,8 +22,8 @@ type PixelLandingProps = {
   defaultPixelSize?: number;
   defaultPaletteId?: string;
   mode?: 'pixel' | 'minecraft';
-  minecraftTool?: 'planner' | 'maker' | 'converter';
-  minecraftStep?: 'convert' | 'compare' | 'edit' | 'build';
+  minecraftTool?: 'planner' | 'maker' | 'converter' | 'generator';
+  minecraftStep?: 'convert' | 'compare' | 'edit' | 'build' | 'generate';
   defaultMinecraftGridWidth?: number; // ?width= 带参跳转的初始网格宽度
   facts?: string[];
   children?: ReactNode;
@@ -44,7 +44,9 @@ export function PixelLanding({
       ? 'edit'
       : minecraftTool === 'converter'
         ? 'compare'
-        : 'build',
+        : minecraftTool === 'generator'
+          ? 'generate'
+          : 'build',
   defaultMinecraftGridWidth,
   facts = ['local canvas', 'PNG export', 'no signup'],
   children,
@@ -105,7 +107,25 @@ export function PixelLanding({
                 size tradeoff, tighten the blocks if needed, then finish with a
                 sectioned planner.
               </p>
-              <div className="mt-4 grid gap-2">
+              <a
+                href="/minecraft-pixel-art-generator"
+                className={`mt-3 block border p-3 transition-colors ${
+                  minecraftStep === 'generate'
+                    ? 'border-[var(--pixel-lime)] bg-[rgba(184,255,61,0.07)]'
+                    : 'border-[var(--line-bright)] bg-black/30 hover:border-[var(--pixel-lime)]'
+                }`}
+              >
+                <span className="block font-mono text-xs uppercase text-[var(--pixel-lime)]">
+                  start here
+                </span>
+                <span className="mt-1 block text-sm text-[var(--paper)]">
+                  Minecraft pixel art generator →
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-[var(--paper-muted)]">
+                  Convert, edit blocks, and export a .schematic on one page.
+                </span>
+              </a>
+              <div className="mt-3 grid gap-2">
                 {[
                   {
                     href: '/image-to-minecraft-pixel-art',

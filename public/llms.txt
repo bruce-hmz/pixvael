@@ -16,6 +16,9 @@ Image to pixel art converter. Free, private, runs entirely in the browser.
 - /minecraft-pixel-art-generator : generate a Minecraft block plan from any image
 - /minecraft-pixel-art-maker : editable block painter with undo, redo, and restore
 - /minecraft-pixel-art-converter : side-by-side 24/32/48/64 block comparison
+- /tutorials : Minecraft pixel art tutorial directory
+- /tutorials/how-to-make-pixel-art-in-minecraft : beginner build guide, manual and generator methods
+- /tutorials/minecraft-image-to-pixel-art-guide : complete image-to-blocks conversion walkthrough
 
 ## About
 Pixvael converts images to pixel art using Canvas color quantization:
@@ -29,6 +32,10 @@ Minecraft pixel art, avatars, wallpapers, perler bead patterns, game sprites,
 posters and prints.
 
 ## Minecraft outputs
-The planner exports a pixel PNG, coordinate blueprint PNG, per-zone blueprint,
-and material CSV. The maker updates every export after block edits. All build
-progress and maker edits are stored locally in the browser.
+The generator converts an image to an editable 52-block grid (wool, terracotta,
+concrete, stone, sandstone, deepslate; filterable by game version 1.9-1.21+).
+Exports: pixel PNG, coordinate blueprint PNG, per-zone blueprint, material CSV,
+and a classic .schematic file (gzip NBT) with vertical mural or flat map-art
+orientation for WorldEdit / Litematica import. Projects save to a JSON file and
+reopen with edits and build progress intact. All build progress and maker edits
+are stored locally in the browser.

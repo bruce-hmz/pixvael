@@ -15,13 +15,16 @@ workerScope.onmessage = (event: MessageEvent<PixelizeWorkerRequest>) => {
     source,
     pixelSize,
     paletteId,
+    paletteColors,
     dither,
     includeMinecraftMaterials,
   } = event.data;
   const palette =
-    paletteId === MINECRAFT_PALETTE.id
-      ? MINECRAFT_PALETTE
-      : getPalette(paletteId);
+    paletteColors && paletteColors.length > 0
+      ? { id: paletteId, name: paletteId, colors: paletteColors }
+      : paletteId === MINECRAFT_PALETTE.id
+        ? MINECRAFT_PALETTE
+        : getPalette(paletteId);
   const result = pixelize(source, { pixelSize, palette, dither });
   const response: PixelizeWorkerResponse = {
     result,

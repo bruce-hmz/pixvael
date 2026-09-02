@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   PIXVAEL_EVENTS,
   trackEvent,
@@ -11,8 +11,12 @@ import { PALETTES, getPalette } from '@/lib/palettes';
 import {
   MINECRAFT_BLOCKS,
   MINECRAFT_PALETTE,
+  MINECRAFT_VERSIONS,
+  blocksForVersion,
+  isMinecraftVersionId,
   type MinecraftBlock,
   type MinecraftMaterial,
+  type MinecraftVersionId,
 } from '@/lib/minecraft-blocks';
 import {
   blockIdsFromMinecraftImage,
@@ -29,8 +33,19 @@ import {
   downloadBlueprintPng,
   downloadCanvasPng,
   downloadMaterialsCsv,
+  downloadProjectFile,
+  downloadSchematic,
   downloadZoneBlueprintPng,
 } from '@/lib/exporters';
+import {
+  buildMinecraftSchematic,
+  type SchematicOrientation,
+} from '@/lib/schematic';
+import {
+  parseProject,
+  serializeProject,
+  type PixvaelProject,
+} from '@/lib/project-file';
 import type {
   PixelizeWorkerRequest,
   PixelizeWorkerResponse,
@@ -51,7 +66,7 @@ type Props = {
   defaultPixelSize?: number;
   defaultPaletteId?: string;
   mode?: 'pixel' | 'minecraft';
-  minecraftTool?: 'planner' | 'maker' | 'converter';
+  minecraftTool?: 'planner' | 'maker' | 'converter' | 'generator';
   inputId?: string;
   // 带参跳转:URL ?width= 传入的初始网格宽度(16-128)。合法值直接采用,否则回落默认 48。
   defaultMinecraftGridWidth?: number;
@@ -119,6 +134,9 @@ export function PixelConverter({
   const isMinecraftMode = mode === 'minecraft';
   const isMinecraftMaker = isMinecraftMode && minecraftTool === 'maker';
   const isMinecraftConverter = isMinecraftMode && minecraftTool === 'converter';
+  // generator 页是完整闭环:编辑面板与 maker 同源,加上 .schematic/工程导出
+  const isMinecraftGenerator = isMinecraftMode && minecraftTool === 'generator';
+  const supportsBlockEditor = isMinecraftMaker || isMinecraftGenerator;
   const sourceCanvasRef = useRef<HTMLCanvasElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -175,6 +193,18 @@ export function PixelConverter({
   const [editHistory, setEditHistory] = useState<string[][]>([]);
   const [editHistoryIndex, setEditHistoryIndex] = useState(-1);
   const [converterPreviews, setConverterPreviews] = useState<ConverterPreview[]>([]);
+  // 方块版本筛选(latest=全部 52 块;1.9/1.12/1.17 逐级收紧可用方块)
+  const [blockVersion, setBlockVersion] = useState<MinecraftVersionId>('latest');
+  const [schematicOrientation, setSchematicOrientation] =
+    useState<SchematicOrientation>('vertical');
+  // 打开工程文件后暂存,worker 渲染完成时把网格/编辑/进度一次性恢复进去
+  const pendingProjectRef = useRef<PixvaelProject | null>(null);
+  const projectInputRef = useRef<HTMLInputElement>(null);
+  // useMemo 稳定数组引用,避免 render 回调身份变化导致防抖重渲染
+  const versionBlocks = useMemo(
+    () => blocksForVersion(blockVersion),
+    [blockVersion],
+  );
 
   const trackPixelEvent = useCallback(
     (eventName: PixvaelEventName, params: AnalyticsParams = {}) =>
@@ -248,6 +278,10 @@ export function PixelConverter({
       paletteId: workerPaletteId,
       dither: workerDither,
       includeMinecraftMaterials: isMinecraftMode,
+      // 版本筛选后的显式调色板:worker 不再查全局注册表
+      paletteColors: isMinecraftMode
+        ? versionBlocks.map((block) => block.color)
+        : undefined,
     };
 
     worker.onmessage = (event: MessageEvent<PixelizeWorkerResponse>) => {
@@ -257,7 +291,7 @@ export function PixelConverter({
         : [];
       let originalBlockIds = generatedBlockIds;
       let activeBlockIds = generatedBlockIds;
-      if (isMinecraftMaker) {
+      if (supportsBlockEditor) {
         const editsKey = `${MINECRAFT_EDITS_PREFIX}:${sourceId}:${resultData.width}x${resultData.height}`;
         try {
           const storedEdits = localStorage.getItem(editsKey);
@@ -292,6 +326,19 @@ export function PixelConverter({
         } catch {
           localStorage.removeItem(editsKey);
         }
+      }
+      // 打开的工程文件优先生效(网格与当前渲染一致才应用,防御错配)
+      const pendingProject = pendingProjectRef.current;
+      if (
+        isMinecraftMode &&
+        pendingProject &&
+        pendingProject.gridWidth === resultData.width &&
+        pendingProject.gridHeight === resultData.height
+      ) {
+        originalBlockIds = generatedBlockIds;
+        activeBlockIds = pendingProject.blockIds;
+        resultData = minecraftImageFromBlockIds(resultData, activeBlockIds);
+        materials = materialsFromBlockIds(activeBlockIds);
       }
       const tmp = document.createElement('canvas');
       tmp.width = resultData.width;
@@ -357,6 +404,16 @@ export function PixelConverter({
         } catch {
           localStorage.removeItem(progressKey);
         }
+        // 工程文件自带的完成进度覆盖本地记录
+        const projectProgress = pendingProjectRef.current;
+        if (
+          projectProgress &&
+          projectProgress.gridWidth === nextGrid.columns &&
+          projectProgress.gridHeight === nextGrid.rows
+        ) {
+          restoredCells = new Set(projectProgress.completedCells);
+          pendingProjectRef.current = null;
+        }
         if (restoredCells.size > 0) {
           progressStartedRef.current = progressKey;
           if (resumedBuildRef.current !== progressKey) {
@@ -408,13 +465,14 @@ export function PixelConverter({
     paletteId,
     dither,
     isMinecraftMode,
-    isMinecraftMaker,
+    supportsBlockEditor,
     isRestoredImage,
     minecraftTool,
     mode,
     targetBlocksAcross,
     sourceId,
     trackPixelEvent,
+    versionBlocks,
   ]);
 
   useEffect(() => {
@@ -585,6 +643,7 @@ export function PixelConverter({
     setError(null);
     setIsRestoredImage(false);
     setConverterPreviews([]);
+    pendingProjectRef.current = null; // 新上传作废未应用的工程恢复
     if (!file.type.startsWith('image/')) {
       setError('Please drop an image file (JPG, PNG, or WebP).');
       return;
@@ -844,11 +903,130 @@ export function PixelConverter({
     });
   }, [minecraftGrid, sectionSize, trackPixelEvent]);
 
+  const handleSchematicDownload = useCallback(() => {
+    if (!minecraftGrid) return;
+    try {
+      const schematic = buildMinecraftSchematic({
+        columns: minecraftGrid.columns,
+        rows: minecraftGrid.rows,
+        blockIds: minecraftCellBlockIds,
+        orientation: schematicOrientation,
+      });
+      downloadSchematic(schematic, 'pixvael-pixel-art.schematic');
+      trackPixelEvent(PIXVAEL_EVENTS.schematicExported, {
+        export_type: 'schematic',
+        grid_columns: minecraftGrid.columns,
+        grid_rows: minecraftGrid.rows,
+        orientation: schematicOrientation,
+        palette_version: blockVersion,
+        total_blocks: minecraftCellBlockIds.length,
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? `Schematic export failed: ${error.message}`
+          : 'Schematic export failed.',
+      );
+    }
+  }, [
+    blockVersion,
+    minecraftCellBlockIds,
+    minecraftGrid,
+    schematicOrientation,
+    trackPixelEvent,
+  ]);
+
+  const handleProjectSave = useCallback(() => {
+    if (!minecraftGrid || !image) return;
+    // 复用跨工具 handoff 的 1024px dataURL 作为内嵌源图
+    const sourceImage = rememberImageForMinecraftMode(image, sourceId);
+    if (!sourceImage) {
+      setError('Could not encode the source image for the project file.');
+      return;
+    }
+    try {
+      const json = serializeProject({
+        gridWidth: minecraftGrid.columns,
+        gridHeight: minecraftGrid.rows,
+        blockVersion,
+        blockIds: minecraftCellBlockIds,
+        completedCells,
+        sourceImage,
+      });
+      downloadProjectFile(json, 'pixvael-project.json');
+      trackPixelEvent(PIXVAEL_EVENTS.projectSaved, {
+        grid_columns: minecraftGrid.columns,
+        grid_rows: minecraftGrid.rows,
+        completed_blocks: completedCells.size,
+        palette_version: blockVersion,
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? `Project save failed: ${error.message}`
+          : 'Project save failed.',
+      );
+    }
+  }, [
+    blockVersion,
+    completedCells,
+    image,
+    minecraftCellBlockIds,
+    minecraftGrid,
+    sourceId,
+    trackPixelEvent,
+  ]);
+
+  const handleProjectOpen = useCallback(
+    async (file: File) => {
+      try {
+        const project = parseProject(await file.text());
+        pendingProjectRef.current = project;
+        renderedSourceRef.current = '';
+        setBlockVersion(
+          isMinecraftVersionId(project.blockVersion) ? project.blockVersion : 'latest',
+        );
+        setTargetBlocksAcross(project.gridWidth);
+        setConverterPreviews([]);
+        const token = ++tokenRef.current;
+        const restoredImage = new Image();
+        restoredImage.onload = () => {
+          if (token !== tokenRef.current) return;
+          const projectSourceId = `project:${project.savedAt}`;
+          rememberImageForMinecraftMode(restoredImage, projectSourceId);
+          setSourceId(projectSourceId);
+          setImage(restoredImage);
+          setIsRestoredImage(true);
+          trackPixelEvent(PIXVAEL_EVENTS.projectOpened, {
+            grid_columns: project.gridWidth,
+            grid_rows: project.gridHeight,
+            completed_blocks: project.completedCells.length,
+            palette_version: project.blockVersion,
+          });
+        };
+        restoredImage.onerror = () => {
+          if (token !== tokenRef.current) return;
+          pendingProjectRef.current = null;
+          setError('Could not read the image embedded in the project file.');
+        };
+        restoredImage.src = project.sourceImage;
+      } catch (error) {
+        pendingProjectRef.current = null;
+        setError(
+          error instanceof Error
+            ? error.message
+            : 'Could not open that project file.',
+        );
+      }
+    },
+    [trackPixelEvent],
+  );
+
   const currentPalette = isMinecraftMode
     ? MINECRAFT_PALETTE
     : getPalette(paletteId);
   const currentPalettePreview = isMinecraftMode
-    ? MINECRAFT_BLOCKS.slice(0, 8).map((block) => rgbValue(block.color))
+    ? versionBlocks.slice(0, 8).map((block) => rgbValue(block.color))
     : palettePreviewColors(paletteId);
   const imageSize = image
     ? `${image.naturalWidth} x ${image.naturalHeight}`
@@ -1136,22 +1314,26 @@ export function PixelConverter({
       <div className="flex flex-col gap-3 border-b border-[var(--line)] bg-black/35 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="terminal-label">
-            {isMinecraftMaker
+            {isMinecraftGenerator
+              ? '/ minecraft pixel art generator'
+              : isMinecraftMaker
               ? '/ minecraft block editor'
               : isMinecraftConverter
                 ? '/ minecraft conversion lab'
-              : isMinecraftMode
-              ? '/ minecraft build planner'
-              : '/ open tool'}
+                : isMinecraftMode
+                  ? '/ minecraft build planner'
+                  : '/ open tool'}
           </p>
           <h2 className="mt-2 text-2xl font-black text-[var(--paper)]">
-            {isMinecraftMaker
-              ? 'Generate a base, repaint blocks, and export the finished blueprint.'
-              : isMinecraftConverter
-                ? 'Compare four build sizes, then open the next tool with the winning plan.'
-              : isMinecraftMode
-              ? 'Set the build grid, count blocks, and keep the section plan moving.'
-              : 'Drop an image, tune the blocks, export PNG.'}
+            {isMinecraftGenerator
+              ? 'Generate from an image, edit any block, export a .schematic to paste in game.'
+              : isMinecraftMaker
+                ? 'Generate a base, repaint blocks, and export the finished blueprint.'
+                : isMinecraftConverter
+                  ? 'Compare four build sizes, then open the next tool with the winning plan.'
+                  : isMinecraftMode
+                    ? 'Set the build grid, count blocks, and keep the section plan moving.'
+                    : 'Drop an image, tune the blocks, export PNG.'}
           </h2>
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs sm:text-right">
@@ -1306,7 +1488,9 @@ export function PixelConverter({
             <div>
               <p className="terminal-label">controls</p>
               <p className="mt-2 text-sm leading-6 text-[var(--paper-muted)]">
-                {isMinecraftMaker
+                {isMinecraftGenerator
+                  ? 'Set the width and block version, repaint any cell that misses, then export the .schematic, blueprint, and material list.'
+                  : isMinecraftMaker
                   ? 'Choose the canvas width, then repaint the cells that do not match the build you want.'
                   : isMinecraftConverter
                     ? 'Compare four generated sizes below, then open the maker if a result needs cleanup or the planner if it is ready.'
@@ -1344,11 +1528,31 @@ export function PixelConverter({
                 </label>
 
                 <div className="border border-[var(--line)] bg-black/25 p-3">
-                  <p className="font-mono text-sm text-[var(--paper)]">
-                    Minecraft block palette
-                  </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-mono text-sm text-[var(--paper)]">
+                      Block palette
+                    </p>
+                    <select
+                      value={blockVersion}
+                      onChange={(event) => {
+                        if (isMinecraftVersionId(event.target.value)) {
+                          setBlockVersion(event.target.value);
+                        }
+                      }}
+                      aria-label="Filter blocks by Minecraft version"
+                      className="control-field px-2 py-1.5 text-xs"
+                    >
+                      {MINECRAFT_VERSIONS.map((version) => (
+                        <option key={version.id} value={version.id}>
+                          {version.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <p className="mt-2 text-xs leading-5 text-[var(--paper-muted)]">
-                    20 common concrete, stone, wood, and sandstone colors.
+                    {versionBlocks.length} wool, terracotta, concrete, and
+                    stone colors. Older versions keep every color buildable by
+                    shifting to wool and terracotta.
                   </p>
                   <div
                     className="mt-3 flex gap-1"
@@ -1553,6 +1757,44 @@ export function PixelConverter({
                   >
                     Download materials CSV
                   </button>
+                  <div className="border border-[var(--line)] bg-black/25 p-3 sm:col-span-2 lg:col-span-1">
+                    <p className="font-mono text-sm text-[var(--paper)]">
+                      Export .schematic
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[var(--paper-muted)]">
+                      Paste with WorldEdit, or convert in Litematica.
+                    </p>
+                    <div className="mt-2 grid grid-cols-2 border border-[var(--line-bright)] font-mono text-xs">
+                      {(
+                        [
+                          { id: 'vertical', label: 'Vertical mural' },
+                          { id: 'flat', label: 'Flat map art' },
+                        ] as const
+                      ).map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          aria-pressed={schematicOrientation === option.id}
+                          onClick={() => setSchematicOrientation(option.id)}
+                          className={`min-h-9 px-2 ${
+                            schematicOrientation === option.id
+                              ? 'bg-[var(--pixel-lime)] text-black'
+                              : 'text-[var(--paper-muted)] hover:text-[var(--paper)]'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSchematicDownload}
+                      disabled={isRendering}
+                      className="pixel-button pixel-button-amber mt-2 w-full text-sm disabled:cursor-wait disabled:opacity-50"
+                    >
+                      Download .schematic
+                    </button>
+                  </div>
                 </>
               )}
               <button
@@ -1563,6 +1805,35 @@ export function PixelConverter({
                 New image
               </button>
             </div>
+
+            {isMinecraftMode && (
+              <div className="border border-[var(--line)] bg-black/25 p-3">
+                <p className="font-mono text-sm text-[var(--paper)]">
+                  Project
+                </p>
+                <p className="mt-1 text-xs leading-5 text-[var(--paper-muted)]">
+                  Save the source image, edits, and build progress to a file,
+                  then reopen it here any time.
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleProjectSave}
+                    disabled={isRendering || !minecraftGrid}
+                    className="pixel-button pixel-button-secondary text-xs disabled:cursor-wait disabled:opacity-50"
+                  >
+                    Save project
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => projectInputRef.current?.click()}
+                    className="pixel-button pixel-button-secondary text-xs"
+                  >
+                    Open project
+                  </button>
+                </div>
+              </div>
+            )}
           </aside>
         </div>
       )}
@@ -1659,7 +1930,7 @@ export function PixelConverter({
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="terminal-label">
-                {isMinecraftMaker ? 'block editor' : 'section build mode'}
+                {supportsBlockEditor ? 'block editor' : 'section build mode'}
               </p>
               <h3 className="mt-2 text-xl font-black text-[var(--paper)]">
                 Zone {activeSectionIndex + 1} · X {sectionStartColumn + 1}–{sectionEndColumn} · Y{' '}
@@ -1671,7 +1942,7 @@ export function PixelConverter({
             </p>
           </div>
 
-          {isMinecraftMaker && (
+          {supportsBlockEditor && (
             <div className="mt-4 border border-[var(--line)] bg-black/40 p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -1684,7 +1955,7 @@ export function PixelConverter({
                 </div>
                 <div className="text-right font-mono text-xs">
                   <p className="text-[var(--pixel-lime)]">
-                    {MINECRAFT_BLOCKS.find((block) => block.id === selectedBlockId)?.name}
+                    {versionBlocks.find((block) => block.id === selectedBlockId)?.name}
                   </p>
                   <p className="mt-1 text-[var(--paper-muted)]">
                     {editedCellCount} edited · saved locally
@@ -1736,8 +2007,8 @@ export function PixelConverter({
                   </button>
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-10 gap-1 sm:[grid-template-columns:repeat(20,minmax(0,1fr))]" aria-label="Minecraft block paint palette">
-                {MINECRAFT_BLOCKS.map((block) => (
+              <div className="mt-3 grid grid-cols-10 gap-1 sm:[grid-template-columns:repeat(26,minmax(0,1fr))]" aria-label="Minecraft block paint palette">
+                {versionBlocks.map((block) => (
                   <button
                     type="button"
                     key={block.id}
@@ -1779,7 +2050,7 @@ export function PixelConverter({
                       aria-pressed={isComplete}
                       title={`X ${cell.column + 1} / Y ${cell.row + 1} · ${block.name}`}
                       onClick={() =>
-                        isMinecraftMaker
+                        supportsBlockEditor
                           ? editMakerCell(cell)
                           : toggleCompletedCell(cell)
                       }
@@ -1939,6 +2210,19 @@ export function PixelConverter({
           const file = e.target.files?.[0];
           e.target.value = '';
           if (file) handleFile(file);
+        }}
+      />
+
+      <input
+        ref={projectInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        aria-label="Open a Pixvael project file"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) void handleProjectOpen(file);
         }}
       />
     </div>
