@@ -1154,6 +1154,14 @@ export function PixelConverter({
             Array.from({ length: 128 }, (_, x) => blockIds[z * 128 + x]),
           ).flat()
         : blockIds;
+      if (isMinecraftMapArt) {
+        trackPixelEvent(PIXVAEL_EVENTS.minecraftMapExportStarted, {
+          mode: 'map_art',
+          export_type: 'litematic',
+          grid_columns: 128,
+          grid_rows: 128,
+        });
+      }
       const litematic = buildLitematic({
         columns: width,
         rows,
