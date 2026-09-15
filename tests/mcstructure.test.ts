@@ -71,13 +71,14 @@ test('mcstructure writes Bedrock size, block indices, and default palette', () =
 test('mcstructure keeps asymmetric x/y/z order and encodes air as palette air', () => {
   const ids: string[] = [];
   for (let x = 0; x < 2; x += 1) {
-    for (let y = 0; y < 4; y += 1) {
-      for (let z = 0; z < 3; z += 1) {
-        ids.push(x === 1 && y === 2 && z === 1 ? 'air' : ['stone', 'dirt', 'oak-planks', 'glass'][(x * 12 + y * 3 + z) % 4]);
+    for (let y = 0; y < 3; y += 1) {
+      for (let z = 0; z < 4; z += 1) {
+        ids.push(x === 1 && y === 2 && z === 1 ? 'air' : ['stone', 'dirt', 'oak-planks', 'glass'][(x * 12 + y * 4 + z) % 4]);
       }
     }
   }
-  const { root, types } = parseMcstructure(buildMcstructure({ columns: 2, rows: 3, depth: 4, blockIds: ids }));
+  const { root, types } = parseMcstructure(buildMcstructure({ columns: 2, rows: 4, depth: 3, blockIds: ids }));
+  assert.deepEqual(root.size, [2, 3, 4]);
   const structure = root.structure as Record<string, Value>;
   const layers = structure.block_indices as Value[];
   assert.equal((layers[0] as Value[]).length, 24);
