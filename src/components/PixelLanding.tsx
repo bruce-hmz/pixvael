@@ -22,7 +22,7 @@ type PixelLandingProps = {
   defaultPixelSize?: number;
   defaultPaletteId?: string;
   mode?: 'pixel' | 'minecraft';
-  minecraftTool?: 'planner' | 'maker' | 'converter' | 'generator';
+  minecraftTool?: 'planner' | 'maker' | 'converter' | 'generator' | 'map-art';
   minecraftStep?: 'convert' | 'compare' | 'edit' | 'build' | 'generate';
   defaultMinecraftGridWidth?: number; // ?width= 带参跳转的初始网格宽度
   facts?: string[];
@@ -46,6 +46,8 @@ export function PixelLanding({
         ? 'compare'
         : minecraftTool === 'generator'
           ? 'generate'
+          : minecraftTool === 'map-art'
+            ? 'generate'
           : 'build',
   defaultMinecraftGridWidth,
   facts = ['local canvas', 'PNG export', 'no signup'],
@@ -105,12 +107,13 @@ export function PixelLanding({
               <p className="mt-2 text-sm leading-6 text-[var(--paper-muted)]">
                 The Minecraft flow is linear. Start with one image, compare the
                 size tradeoff, tighten the blocks if needed, then finish with a
-                sectioned planner.
+                sectioned planner. Map Art stays on its own 128 × 128 Java map
+                canvas so its build geometry stays predictable.
               </p>
               <a
                 href="/minecraft-pixel-art-generator"
                 className={`mt-3 block border p-3 transition-colors ${
-                  minecraftStep === 'generate'
+                  minecraftStep === 'generate' && minecraftTool === 'generator'
                     ? 'border-[var(--pixel-lime)] bg-[rgba(184,255,61,0.07)]'
                     : 'border-[var(--line-bright)] bg-black/30 hover:border-[var(--pixel-lime)]'
                 }`}
@@ -122,11 +125,17 @@ export function PixelLanding({
                   Minecraft pixel art generator →
                 </span>
                 <span className="mt-1 block text-xs leading-5 text-[var(--paper-muted)]">
-                  Convert, edit blocks, and export a .schematic on one page.
+                  Convert, edit blocks, and export a native build file on one page.
                 </span>
               </a>
               <div className="mt-3 grid gap-2">
                 {[
+                  {
+                    href: '/minecraft-map-art-generator',
+                    step: 'MAP',
+                    title: 'Java Map Art',
+                    body: '1 × 1 map canvas with a flat 128 × 128 native export.',
+                  },
                   {
                     href: '/image-to-minecraft-pixel-art',
                     step: '01',
@@ -166,7 +175,9 @@ export function PixelLanding({
                           ? 'compare'
                           : step.href === '/minecraft-pixel-art-maker'
                             ? 'edit'
-                            : 'build'
+                            : step.href === '/minecraft-map-art-generator'
+                              ? 'generate'
+                              : 'build'
                     }
                     active={
                       (minecraftStep === 'convert' &&
@@ -175,6 +186,8 @@ export function PixelLanding({
                         step.href === '/minecraft-pixel-art-converter') ||
                       (minecraftStep === 'edit' &&
                         step.href === '/minecraft-pixel-art-maker') ||
+                      (minecraftStep === 'generate' &&
+                        step.href === '/minecraft-map-art-generator') ||
                       (minecraftStep === 'build' &&
                         step.href === '/minecraft-pixel-art')
                     }

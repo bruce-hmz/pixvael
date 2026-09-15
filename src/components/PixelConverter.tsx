@@ -7,9 +7,10 @@ import {
   type AnalyticsParams,
   type PixvaelEventName,
 } from '@/lib/analytics';
+import { cropFingerprint, cropRect, DEFAULT_CROP, type CropState } from '@/lib/crop';
 import { PALETTES, getPalette } from '@/lib/palettes';
 import {
-  MINECRAFT_BLOCKS,
+  MINECRAFT_CANONICAL_BLOCKS,
   MINECRAFT_PALETTE,
   MINECRAFT_VERSIONS,
   blocksForVersion,
@@ -32,7 +33,9 @@ import {
 import {
   downloadBlueprintPng,
   downloadCanvasPng,
+  downloadLitematic,
   downloadMaterialsCsv,
+  downloadMcstructure,
   downloadProjectFile,
   downloadSchematic,
   downloadZoneBlueprintPng,
@@ -41,8 +44,19 @@ import {
   buildMinecraftSchematic,
   type SchematicOrientation,
 } from '@/lib/schematic';
+import { buildLitematic } from '@/lib/litematic';
+import { buildMcstructure } from '@/lib/mcstructure';
+import {
+  javaMapPaletteColors,
+  JAVA_MAP_BLOCKS,
+  mapDisplayColor,
+  mapImageFromBlockIds,
+  mapExportBlockIds,
+  mapGeometry,
+} from '@/lib/minecraft-map-art';
 import {
   parseProject,
+  projectRestoreState,
   serializeProject,
   type PixvaelProject,
 } from '@/lib/project-file';
@@ -66,7 +80,7 @@ type Props = {
   defaultPixelSize?: number;
   defaultPaletteId?: string;
   mode?: 'pixel' | 'minecraft';
-  minecraftTool?: 'planner' | 'maker' | 'converter' | 'generator';
+  minecraftTool?: 'planner' | 'maker' | 'converter' | 'generator' | 'map-art';
   inputId?: string;
   // 带参跳转:URL ?width= 传入的初始网格宽度(16-128)。合法值直接采用,否则回落默认 48。
   defaultMinecraftGridWidth?: number;
@@ -79,6 +93,18 @@ type ConverterPreview = {
   materialCount: number;
   imageUrl: string;
 };
+
+function imageFromMinecraftBlockIds(
+  source: ImageData,
+  blockIds: string[],
+  mapArt: boolean,
+) {
+  return mapArt ? mapImageFromBlockIds(source, blockIds) : minecraftImageFromBlockIds(source, blockIds);
+}
+
+function blockColor(block: MinecraftBlock, mapArt: boolean) {
+  return mapArt ? mapDisplayColor(block.id) : block.color;
+}
 
 function palettePreviewColors(paletteId: string) {
   const palette = getPalette(paletteId);
@@ -123,6 +149,31 @@ function rememberImageForMinecraftMode(image: HTMLImageElement, sourceId: string
   return encodedImage;
 }
 
+function minecraftStateKey(input: {
+  prefix: string;
+  sourceId: string;
+  mode: 'pixel' | 'minecraft';
+  minecraftTool: Props['minecraftTool'];
+  edition: 'java' | 'bedrock';
+  blockVersion: MinecraftVersionId;
+  gridWidth: number;
+  gridHeight: number;
+  crop: CropState;
+  dither: boolean;
+}) {
+  return [
+    input.prefix,
+    input.sourceId,
+    input.mode,
+    input.minecraftTool,
+    input.edition,
+    input.blockVersion,
+    `${input.gridWidth}x${input.gridHeight}`,
+    cropFingerprint(input.crop),
+    input.dither ? 'dither' : 'flat',
+  ].join(':');
+}
+
 export function PixelConverter({
   defaultPixelSize = 8,
   defaultPaletteId = 'full',
@@ -136,7 +187,8 @@ export function PixelConverter({
   const isMinecraftConverter = isMinecraftMode && minecraftTool === 'converter';
   // generator 页是完整闭环:编辑面板与 maker 同源,加上 .schematic/工程导出
   const isMinecraftGenerator = isMinecraftMode && minecraftTool === 'generator';
-  const supportsBlockEditor = isMinecraftMaker || isMinecraftGenerator;
+  const isMinecraftMapArt = isMinecraftMode && minecraftTool === 'map-art';
+  const supportsBlockEditor = isMinecraftMaker || isMinecraftGenerator || isMinecraftMapArt;
   const sourceCanvasRef = useRef<HTMLCanvasElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -144,10 +196,12 @@ export function PixelConverter({
   const fullCanvasRef = useRef<HTMLCanvasElement | null>(null); // 完整输出(下载用)
   const minecraftPreviewBaseRef = useRef<HTMLCanvasElement | null>(null);
   const minecraftResultRef = useRef<ImageData | null>(null);
+  const renderTokenRef = useRef(0);
   const renderedSourceRef = useRef('');
   const progressStartedRef = useRef('');
   const resumedBuildRef = useRef('');
   const makerEditedRef = useRef('');
+  const mapMaterialsViewedRef = useRef('');
 
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [pixelSize, setPixelSize] = useState(defaultPixelSize);
@@ -188,7 +242,9 @@ export function PixelConverter({
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [minecraftCellBlockIds, setMinecraftCellBlockIds] = useState<string[]>([]);
   const [originalMinecraftCellBlockIds, setOriginalMinecraftCellBlockIds] = useState<string[]>([]);
-  const [selectedBlockId, setSelectedBlockId] = useState('white-concrete');
+  const [selectedBlockId, setSelectedBlockId] = useState(
+    isMinecraftMapArt ? 'white-wool' : 'white-concrete',
+  );
   const [makerTool, setMakerTool] = useState<'paint' | 'pick' | 'restore' | 'build'>('paint');
   const [editHistory, setEditHistory] = useState<string[][]>([]);
   const [editHistoryIndex, setEditHistoryIndex] = useState(-1);
@@ -197,6 +253,11 @@ export function PixelConverter({
   const [blockVersion, setBlockVersion] = useState<MinecraftVersionId>('latest');
   const [schematicOrientation, setSchematicOrientation] =
     useState<SchematicOrientation>('vertical');
+  const [edition, setEdition] = useState<'java' | 'bedrock'>('java');
+  const [exportFormat, setExportFormat] = useState<'schematic' | 'litematic' | 'mcstructure' | 'png'>(
+    isMinecraftMapArt ? 'litematic' : 'schematic',
+  );
+  const [crop, setCrop] = useState<CropState>(DEFAULT_CROP);
   // 打开工程文件后暂存,worker 渲染完成时把网格/编辑/进度一次性恢复进去
   const pendingProjectRef = useRef<PixvaelProject | null>(null);
   const projectInputRef = useRef<HTMLInputElement>(null);
@@ -215,6 +276,24 @@ export function PixelConverter({
       }),
     [isMinecraftMode, minecraftTool, mode],
   );
+
+  useEffect(() => {
+    if (!isMinecraftMapArt) return;
+    trackPixelEvent(PIXVAEL_EVENTS.minecraftModeSelected, {
+      mode: 'map_art',
+      edition,
+      mapGrid: '1x1',
+      width: 128,
+      height: 128,
+    });
+    trackPixelEvent(PIXVAEL_EVENTS.minecraftMapSizeSelected, {
+      mode: 'map_art',
+      edition,
+      mapGrid: '1x1',
+      width: 128,
+      height: 128,
+    });
+  }, [edition, isMinecraftMapArt, trackPixelEvent]);
 
   const render = useCallback(() => {
     if (!image || !sourceCanvasRef.current || !previewCanvasRef.current) return;
@@ -240,11 +319,13 @@ export function PixelConverter({
     let outputHeight = h;
 
     if (isMinecraftMode) {
-      const gridColumns = targetBlocksAcross;
-      const gridRows = Math.max(
-        1,
-        Math.round((image.naturalHeight / image.naturalWidth) * gridColumns),
-      );
+      const gridColumns = isMinecraftMapArt ? 128 : targetBlocksAcross;
+      const gridRows = isMinecraftMapArt
+        ? 128
+        : Math.max(
+            1,
+            Math.round((image.naturalHeight / image.naturalWidth) * gridColumns),
+          );
       const gridCanvas = document.createElement('canvas');
       gridCanvas.width = gridColumns;
       gridCanvas.height = gridRows;
@@ -252,7 +333,25 @@ export function PixelConverter({
       if (!gridCtx) return;
       gridCtx.imageSmoothingEnabled = true;
       gridCtx.imageSmoothingQuality = 'high';
-      gridCtx.drawImage(image, 0, 0, gridColumns, gridRows);
+      if (isMinecraftMapArt) {
+        const squareCrop = cropRect(image.naturalWidth, image.naturalHeight, {
+          ...crop,
+          aspect: 'square',
+        });
+        gridCtx.drawImage(
+          image,
+          squareCrop.x,
+          squareCrop.y,
+          squareCrop.width,
+          squareCrop.height,
+          0,
+          0,
+          gridColumns,
+          gridRows,
+        );
+      } else {
+        gridCtx.drawImage(image, 0, 0, gridColumns, gridRows);
+      }
       workerSource = gridCtx.getImageData(0, 0, gridColumns, gridRows);
       workerPixelSize = 1;
       workerPaletteId = MINECRAFT_PALETTE.id;
@@ -268,6 +367,7 @@ export function PixelConverter({
       workerSource = srcCtx.getImageData(0, 0, w, h);
     }
 
+    const renderToken = ++renderTokenRef.current;
     const worker = new Worker(
       new URL('../workers/pixelize.worker.ts', import.meta.url),
       { type: 'module', name: 'pixvael-pixelizer' },
@@ -278,26 +378,61 @@ export function PixelConverter({
       paletteId: workerPaletteId,
       dither: workerDither,
       includeMinecraftMaterials: isMinecraftMode,
+      mode: isMinecraftMapArt ? 'map_art' : isMinecraftMode ? 'pixel_art' : undefined,
       // 版本筛选后的显式调色板:worker 不再查全局注册表
       paletteColors: isMinecraftMode
-        ? versionBlocks.map((block) => block.color)
+        ? isMinecraftMapArt
+          ? javaMapPaletteColors()
+          : versionBlocks.map((block) => block.color)
         : undefined,
     };
 
     worker.onmessage = (event: MessageEvent<PixelizeWorkerResponse>) => {
-      let { result: resultData, materials } = event.data;
+      if (renderToken !== renderTokenRef.current) {
+        worker.terminate();
+        return;
+      }
+      const { result: initialResultData, materials: initialMaterials, blockIds: workerBlockIds } = event.data;
+      if (
+        isMinecraftMapArt &&
+        (!workerBlockIds || workerBlockIds.length !== initialResultData.width * initialResultData.height)
+      ) {
+        setError('Map Art worker returned no valid block identities.');
+        setIsRendering(false);
+        worker.terminate();
+        return;
+      }
+      let resultData = initialResultData;
+      let materials = initialMaterials;
       const generatedBlockIds = isMinecraftMode
-        ? blockIdsFromMinecraftImage(resultData)
+        ? isMinecraftMapArt
+          ? workerBlockIds!
+          : blockIdsFromMinecraftImage(resultData)
         : [];
       let originalBlockIds = generatedBlockIds;
       let activeBlockIds = generatedBlockIds;
       if (supportsBlockEditor) {
-        const editsKey = `${MINECRAFT_EDITS_PREFIX}:${sourceId}:${resultData.width}x${resultData.height}`;
+        const editsKey = minecraftStateKey({
+          prefix: MINECRAFT_EDITS_PREFIX,
+          sourceId,
+          mode,
+          minecraftTool,
+          edition,
+          blockVersion,
+          gridWidth: resultData.width,
+          gridHeight: resultData.height,
+          crop,
+          dither,
+        });
         try {
           const storedEdits = localStorage.getItem(editsKey);
           if (storedEdits) {
             const parsedEdits: unknown = JSON.parse(storedEdits);
-            const knownBlockIds = new Set(MINECRAFT_BLOCKS.map((block) => block.id));
+            const knownBlockIds = new Set(
+              (isMinecraftMapArt ? [...JAVA_MAP_BLOCKS, MINECRAFT_CANONICAL_BLOCKS.find((block) => block.id === 'air')!] : MINECRAFT_CANONICAL_BLOCKS).map(
+                (block) => block.id,
+              ),
+            );
             const isValidBlockList = (value: unknown): value is string[] =>
               Array.isArray(value) &&
               value.length === generatedBlockIds.length &&
@@ -307,7 +442,7 @@ export function PixelConverter({
               );
             if (isValidBlockList(parsedEdits)) {
               activeBlockIds = parsedEdits;
-              resultData = minecraftImageFromBlockIds(resultData, activeBlockIds);
+              resultData = imageFromMinecraftBlockIds(resultData, activeBlockIds, isMinecraftMapArt);
               materials = materialsFromBlockIds(activeBlockIds);
             } else if (
               parsedEdits &&
@@ -319,7 +454,7 @@ export function PixelConverter({
             ) {
               originalBlockIds = parsedEdits.original;
               activeBlockIds = parsedEdits.edited;
-              resultData = minecraftImageFromBlockIds(resultData, activeBlockIds);
+              resultData = imageFromMinecraftBlockIds(resultData, activeBlockIds, isMinecraftMapArt);
               materials = materialsFromBlockIds(activeBlockIds);
             }
           }
@@ -337,8 +472,13 @@ export function PixelConverter({
       ) {
         originalBlockIds = generatedBlockIds;
         activeBlockIds = pendingProject.blockIds;
-        resultData = minecraftImageFromBlockIds(resultData, activeBlockIds);
+        resultData = imageFromMinecraftBlockIds(resultData, activeBlockIds, isMinecraftMapArt);
         materials = materialsFromBlockIds(activeBlockIds);
+      }
+      if (isMinecraftMapArt) {
+        materials = materialsFromBlockIds(
+          mapExportBlockIds(activeBlockIds, resultData.width),
+        );
       }
       const tmp = document.createElement('canvas');
       tmp.width = resultData.width;
@@ -386,7 +526,18 @@ export function PixelConverter({
           minecraftPreviewBaseRef.current = previewBase;
         }
         minecraftResultRef.current = resultData;
-        const progressKey = `${MINECRAFT_PROGRESS_PREFIX}:${sourceId}:${nextGrid.columns}x${nextGrid.rows}`;
+        const progressKey = minecraftStateKey({
+          prefix: MINECRAFT_PROGRESS_PREFIX,
+          sourceId,
+          mode,
+          minecraftTool,
+          edition,
+          blockVersion,
+          gridWidth: nextGrid.columns,
+          gridHeight: nextGrid.rows,
+          crop,
+          dither,
+        });
         let restoredCells = new Set<number>();
         try {
           const storedProgress = localStorage.getItem(progressKey);
@@ -436,6 +587,17 @@ export function PixelConverter({
         setHoveredCell(null);
         setHoveredBlock(null);
         setActiveSectionIndex(0);
+        if (isMinecraftMapArt) {
+          trackPixelEvent(PIXVAEL_EVENTS.minecraftMapConversionCompleted, {
+            mode: 'map_art',
+            edition,
+            mapGrid: '1x1',
+            width: nextGrid.columns,
+            height: nextGrid.rows,
+            blockCount: 128 * 128,
+            paletteSize: materials.length,
+          });
+        }
       }
       const renderKey = `${sourceId}:${mode}:${minecraftTool}`;
       if (sourceId && renderedSourceRef.current !== renderKey) {
@@ -473,6 +635,10 @@ export function PixelConverter({
     sourceId,
     trackPixelEvent,
     versionBlocks,
+    blockVersion,
+    crop,
+    edition,
+    isMinecraftMapArt,
   ]);
 
   useEffect(() => {
@@ -611,9 +777,20 @@ export function PixelConverter({
 
   useEffect(() => {
     if (!isMinecraftMode || !minecraftGrid || !sourceId) return;
-    const progressKey = `${MINECRAFT_PROGRESS_PREFIX}:${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`;
+    const progressKey = minecraftStateKey({
+      prefix: MINECRAFT_PROGRESS_PREFIX,
+      sourceId,
+      mode,
+      minecraftTool,
+      edition,
+      blockVersion,
+      gridWidth: minecraftGrid.columns,
+      gridHeight: minecraftGrid.rows,
+      crop,
+      dither,
+    });
     localStorage.setItem(progressKey, JSON.stringify(Array.from(completedCells)));
-  }, [completedCells, isMinecraftMode, minecraftGrid, sourceId]);
+  }, [blockVersion, completedCells, crop, dither, edition, isMinecraftMode, minecraftGrid, mode, minecraftTool, sourceId]);
 
   useEffect(() => {
     if (!isMinecraftMode || image) return;
@@ -643,6 +820,7 @@ export function PixelConverter({
     setError(null);
     setIsRestoredImage(false);
     setConverterPreviews([]);
+    if (isMinecraftMapArt) setCrop(DEFAULT_CROP);
     pendingProjectRef.current = null; // 新上传作废未应用的工程恢复
     if (!file.type.startsWith('image/')) {
       setError('Please drop an image file (JPG, PNG, or WebP).');
@@ -657,6 +835,15 @@ export function PixelConverter({
       file_size_kb: Math.max(1, Math.round(file.size / 1024)),
       input_method: inputMethod,
     });
+    if (isMinecraftMapArt) {
+      trackPixelEvent(PIXVAEL_EVENTS.minecraftMapArtStarted, {
+        mode: 'map_art',
+        edition,
+        mapGrid: '1x1',
+        width: 128,
+        height: 128,
+      });
+    }
     const token = ++tokenRef.current;
     const url = URL.createObjectURL(file);
     const nextSourceId = `${file.name}:${file.size}:${file.lastModified}`;
@@ -694,7 +881,7 @@ export function PixelConverter({
       setError('Could not load that image. It may be corrupted or too large.');
     };
     img.src = url;
-  }, [isMinecraftMode, trackPixelEvent]);
+  }, [edition, isMinecraftMapArt, isMinecraftMode, trackPixelEvent]);
 
   // Chrome 插件导入:插件抓取右键图片后向页面 postMessage,这里转成 File 复用 handleFile。
   // 契约(与 extension/background.js 对应):插件轮询 documentElement 上的
@@ -754,7 +941,18 @@ export function PixelConverter({
       if (nextCells.has(cell.index)) nextCells.delete(cell.index);
       else nextCells.add(cell.index);
       const progressKey = minecraftGrid
-        ? `${MINECRAFT_PROGRESS_PREFIX}:${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`
+        ? minecraftStateKey({
+            prefix: MINECRAFT_PROGRESS_PREFIX,
+            sourceId,
+            mode,
+            minecraftTool,
+            edition,
+            blockVersion,
+            gridWidth: minecraftGrid.columns,
+            gridHeight: minecraftGrid.rows,
+            crop,
+            dither,
+          })
         : '';
       if (
         currentCells.size === 0 &&
@@ -771,7 +969,7 @@ export function PixelConverter({
       }
       return nextCells;
     });
-  }, [minecraftGrid, sourceId, trackPixelEvent]);
+  }, [blockVersion, crop, dither, edition, minecraftGrid, minecraftTool, mode, sourceId, trackPixelEvent]);
 
   const selectMinecraftCell = useCallback(
     (cell: MinecraftCell | null) => {
@@ -781,17 +979,12 @@ export function PixelConverter({
         setHoveredBlock(null);
         return;
       }
-      const offset = cell.index * 4;
+      const activeBlockId = minecraftCellBlockIds[cell.index];
       setHoveredBlock(
-        MINECRAFT_BLOCKS.find(
-          (block) =>
-            result.data[offset] === block.color.r &&
-            result.data[offset + 1] === block.color.g &&
-            result.data[offset + 2] === block.color.b,
-        ) ?? null,
+        MINECRAFT_CANONICAL_BLOCKS.find((block) => block.id === activeBlockId) ?? null,
       );
     },
-    [],
+    [minecraftCellBlockIds],
   );
 
   const inspectMinecraftCell = useCallback(
@@ -884,7 +1077,18 @@ export function PixelConverter({
         0,
       ),
     });
-  }, [minecraftGrid, minecraftMaterials, trackPixelEvent]);
+    if (isMinecraftMapArt) {
+      trackPixelEvent(PIXVAEL_EVENTS.minecraftMapMaterialsViewed, {
+        mode: 'map_art',
+        edition,
+        mapGrid: '1x1',
+        width: minecraftGrid.columns,
+        height: minecraftGrid.rows,
+        blockCount: minecraftMaterials.reduce((sum, material) => sum + material.count, 0),
+        paletteSize: minecraftMaterials.length,
+      });
+    }
+  }, [edition, isMinecraftMapArt, minecraftGrid, minecraftMaterials, trackPixelEvent]);
 
   const handleBlueprintDownload = useCallback(() => {
     const result = minecraftResultRef.current;
@@ -906,20 +1110,20 @@ export function PixelConverter({
   const handleSchematicDownload = useCallback(() => {
     if (!minecraftGrid) return;
     try {
+      const exportGrid = isMinecraftMapArt
+        ? { columns: 128, rows: 128, blockIds: mapExportBlockIds(minecraftCellBlockIds, 128), orientation: 'flat' as const }
+        : { columns: minecraftGrid.columns, rows: minecraftGrid.rows, blockIds: minecraftCellBlockIds, orientation: schematicOrientation };
       const schematic = buildMinecraftSchematic({
-        columns: minecraftGrid.columns,
-        rows: minecraftGrid.rows,
-        blockIds: minecraftCellBlockIds,
-        orientation: schematicOrientation,
+        ...exportGrid,
       });
-      downloadSchematic(schematic, 'pixvael-pixel-art.schematic');
+      downloadSchematic(schematic, isMinecraftMapArt ? 'pixvael-map-art.schematic' : 'pixvael-pixel-art.schematic');
       trackPixelEvent(PIXVAEL_EVENTS.schematicExported, {
         export_type: 'schematic',
-        grid_columns: minecraftGrid.columns,
-        grid_rows: minecraftGrid.rows,
-        orientation: schematicOrientation,
+        grid_columns: exportGrid.columns,
+        grid_rows: exportGrid.rows,
+        orientation: exportGrid.orientation,
         palette_version: blockVersion,
-        total_blocks: minecraftCellBlockIds.length,
+        total_blocks: exportGrid.blockIds.length,
       });
     } catch (error) {
       setError(
@@ -932,9 +1136,64 @@ export function PixelConverter({
     blockVersion,
     minecraftCellBlockIds,
     minecraftGrid,
+    isMinecraftMapArt,
     schematicOrientation,
     trackPixelEvent,
   ]);
+
+  const handleLitematicDownload = useCallback(() => {
+    if (!minecraftGrid) return;
+    try {
+      const blockIds = isMinecraftMapArt
+        ? mapExportBlockIds(minecraftCellBlockIds, 128)
+        : minecraftCellBlockIds;
+      const width = isMinecraftMapArt ? 128 : minecraftGrid.columns;
+      const rows = isMinecraftMapArt ? 128 : minecraftGrid.rows;
+      const litematicBlockIds = isMinecraftMapArt
+        ? Array.from({ length: 128 }, (_, z) =>
+            Array.from({ length: 128 }, (_, x) => blockIds[z * 128 + x]),
+          ).flat()
+        : blockIds;
+      const litematic = buildLitematic({
+        columns: width,
+        rows,
+        blockIds: litematicBlockIds,
+        orientation: isMinecraftMapArt ? 'flat' : schematicOrientation,
+        dimensions: isMinecraftMapArt ? { width: 128, height: 1, length: 128 } : undefined,
+        minecraftDataVersion: 3465,
+        name: isMinecraftMapArt ? 'Pixvael Minecraft Map Art' : 'Pixvael Minecraft Pixel Art',
+      });
+      downloadLitematic(litematic, isMinecraftMapArt ? 'pixvael-map-art.litematic' : 'pixvael-pixel-art.litematic');
+      trackPixelEvent(PIXVAEL_EVENTS.minecraftExportLitematic, {
+        mode: isMinecraftMapArt ? 'map_art' : 'pixel_art', edition,
+        grid_columns: width, grid_rows: rows, block_count: litematicBlockIds.length,
+      });
+    } catch (error) {
+      setError(error instanceof Error ? `Litematic export failed: ${error.message}` : 'Litematic export failed.');
+    }
+  }, [edition, isMinecraftMapArt, minecraftCellBlockIds, minecraftGrid, schematicOrientation, trackPixelEvent]);
+
+  const handleMcstructureDownload = useCallback(() => {
+    if (!minecraftGrid || isMinecraftMapArt) return;
+    try {
+      const mcstructure = buildMcstructure({
+        columns: minecraftGrid.columns,
+        rows: minecraftGrid.rows,
+        blockIds: Array.from({ length: minecraftGrid.columns }, (_, x) =>
+          Array.from({ length: minecraftGrid.rows }, (_, z) => minecraftCellBlockIds[z * minecraftGrid.columns + x]),
+        ).flat(),
+        depth: 1,
+      });
+      downloadMcstructure(mcstructure, 'pixvael-pixel-art.mcstructure');
+      trackPixelEvent(PIXVAEL_EVENTS.minecraftExportMcstructure, {
+        mode: 'pixel_art', edition: 'bedrock',
+        grid_columns: minecraftGrid.columns, grid_rows: minecraftGrid.rows,
+        block_count: minecraftCellBlockIds.length,
+      });
+    } catch (error) {
+      setError(error instanceof Error ? `mcstructure export failed: ${error.message}` : 'mcstructure export failed.');
+    }
+  }, [isMinecraftMapArt, minecraftCellBlockIds, minecraftGrid, trackPixelEvent]);
 
   const handleProjectSave = useCallback(() => {
     if (!minecraftGrid || !image) return;
@@ -952,6 +1211,13 @@ export function PixelConverter({
         blockIds: minecraftCellBlockIds,
         completedCells,
         sourceImage,
+        mode: isMinecraftMapArt ? 'map_art' : 'pixel_art',
+        edition,
+        mapGrid: isMinecraftMapArt ? '1x1' : undefined,
+        crop: isMinecraftMapArt ? { ...crop, aspect: 'square' } : undefined,
+        orientation: isMinecraftMapArt ? 'flat' : schematicOrientation,
+        exportFormat,
+        dither,
       });
       downloadProjectFile(json, 'pixvael-project.json');
       trackPixelEvent(PIXVAEL_EVENTS.projectSaved, {
@@ -959,6 +1225,7 @@ export function PixelConverter({
         grid_rows: minecraftGrid.rows,
         completed_blocks: completedCells.size,
         palette_version: blockVersion,
+        mode: isMinecraftMapArt ? 'map_art' : 'pixel_art',
       });
     } catch (error) {
       setError(
@@ -970,10 +1237,16 @@ export function PixelConverter({
   }, [
     blockVersion,
     completedCells,
+    crop,
+    dither,
+    edition,
+    exportFormat,
     image,
+    isMinecraftMapArt,
     minecraftCellBlockIds,
     minecraftGrid,
     sourceId,
+    schematicOrientation,
     trackPixelEvent,
   ]);
 
@@ -986,6 +1259,12 @@ export function PixelConverter({
         setBlockVersion(
           isMinecraftVersionId(project.blockVersion) ? project.blockVersion : 'latest',
         );
+        const restoredState = projectRestoreState(project);
+        if (restoredState.crop) setCrop(restoredState.crop);
+        setSchematicOrientation(restoredState.orientation);
+        setDither(restoredState.dither);
+        setEdition(restoredState.edition);
+        setExportFormat(restoredState.exportFormat);
         setTargetBlocksAcross(project.gridWidth);
         setConverterPreviews([]);
         const token = ++tokenRef.current;
@@ -1026,8 +1305,13 @@ export function PixelConverter({
     ? MINECRAFT_PALETTE
     : getPalette(paletteId);
   const currentPalettePreview = isMinecraftMode
-    ? versionBlocks.slice(0, 8).map((block) => rgbValue(block.color))
+    ? (isMinecraftMapArt ? javaMapPaletteColors() : versionBlocks.map((block) => block.color))
+        .slice(0, 8)
+        .map(rgbValue)
     : palettePreviewColors(paletteId);
+  const minecraftEditorBlocks = isMinecraftMapArt
+    ? [...versionBlocks.filter((block) => JAVA_MAP_BLOCKS.some((candidate) => candidate.id === block.id)), MINECRAFT_CANONICAL_BLOCKS.find((block) => block.id === 'air')!]
+    : versionBlocks;
   const imageSize = image
     ? `${image.naturalWidth} x ${image.naturalHeight}`
     : 'waiting for image';
@@ -1035,6 +1319,27 @@ export function PixelConverter({
     (sum, material) => sum + material.count,
     0,
   );
+  const minecraftEstimatedStacks = minecraftMaterials.reduce(
+    (sum, material) => sum + Math.ceil(material.count / 64),
+    0,
+  );
+  const mapStats = isMinecraftMapArt ? mapGeometry({ columns: 1, rows: 1 }) : null;
+
+  useEffect(() => {
+    if (!isMinecraftMapArt || !minecraftGrid || minecraftMaterials.length === 0) return;
+    const key = `${sourceId}:${cropFingerprint(crop)}:${minecraftMaterials.length}`;
+    if (mapMaterialsViewedRef.current === key) return;
+    mapMaterialsViewedRef.current = key;
+    trackPixelEvent(PIXVAEL_EVENTS.minecraftMapMaterialsViewed, {
+      mode: 'map_art',
+      edition,
+      mapGrid: '1x1',
+      width: minecraftGrid.columns,
+      height: minecraftGrid.rows,
+      blockCount: minecraftBlockTotal,
+      paletteSize: minecraftMaterials.length,
+    });
+  }, [crop, edition, isMinecraftMapArt, minecraftBlockTotal, minecraftGrid, minecraftMaterials.length, sourceId, trackPixelEvent]);
   const sectionColumnCount = minecraftGrid
     ? Math.ceil(minecraftGrid.columns / sectionSize)
     : 0;
@@ -1061,9 +1366,9 @@ export function PixelConverter({
       for (let column = sectionStartColumn; column < sectionEndColumn; column++) {
         const index = row * minecraftGrid.columns + column;
         const block =
-          MINECRAFT_BLOCKS.find(
+          MINECRAFT_CANONICAL_BLOCKS.find(
             (candidate) => candidate.id === minecraftCellBlockIds[index],
-          ) ?? MINECRAFT_BLOCKS[0];
+          ) ?? MINECRAFT_CANONICAL_BLOCKS[0];
         activeSectionCells.push({
           cell: { column, row, index },
           block,
@@ -1094,13 +1399,14 @@ export function PixelConverter({
     const nextData = new Uint8ClampedArray(currentResult.data);
     nextBlockIds.forEach((blockId, index) => {
       const block =
-        MINECRAFT_BLOCKS.find((candidate) => candidate.id === blockId) ??
-        MINECRAFT_BLOCKS[0];
+        MINECRAFT_CANONICAL_BLOCKS.find((candidate) => candidate.id === blockId) ??
+        MINECRAFT_CANONICAL_BLOCKS[0];
       const offset = index * 4;
-      nextData[offset] = block.color.r;
-      nextData[offset + 1] = block.color.g;
-      nextData[offset + 2] = block.color.b;
-      nextData[offset + 3] = 255;
+      const color = blockColor(block, isMinecraftMapArt);
+      nextData[offset] = color.r;
+      nextData[offset + 1] = color.g;
+      nextData[offset + 2] = color.b;
+      nextData[offset + 3] = block.id === 'air' ? 0 : 255;
     });
     const nextResult = new ImageData(
       nextData,
@@ -1130,13 +1436,28 @@ export function PixelConverter({
       fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
       fullCtx.drawImage(tinyCanvas, 0, 0, fullCanvas.width, fullCanvas.height);
     }
-    setMinecraftMaterials(materialsFromBlockIds(nextBlockIds));
+    setMinecraftMaterials(
+      materialsFromBlockIds(
+        isMinecraftMapArt ? mapExportBlockIds(nextBlockIds, minecraftGrid?.columns ?? 128) : nextBlockIds,
+      ),
+    );
     setMinecraftCellBlockIds(nextBlockIds);
   }
 
   function persistMinecraftEdits(blockIds: string[]) {
     if (!minecraftGrid || !sourceId) return;
-    const editsKey = `${MINECRAFT_EDITS_PREFIX}:${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`;
+    const editsKey = minecraftStateKey({
+      prefix: MINECRAFT_EDITS_PREFIX,
+      sourceId,
+      mode,
+      minecraftTool,
+      edition,
+      blockVersion,
+      gridWidth: minecraftGrid.columns,
+      gridHeight: minecraftGrid.rows,
+      crop,
+      dither,
+    });
     try {
       localStorage.setItem(
         editsKey,
@@ -1167,7 +1488,18 @@ export function PixelConverter({
     applyMinecraftCellIds(nextBlockIds);
     persistMinecraftEdits(nextBlockIds);
     const editKey = minecraftGrid
-      ? `${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`
+      ? minecraftStateKey({
+          prefix: 'edited',
+          sourceId,
+          mode,
+          minecraftTool,
+          edition,
+          blockVersion,
+          gridWidth: minecraftGrid.columns,
+          gridHeight: minecraftGrid.rows,
+          crop,
+          dither,
+        })
       : '';
     if (editKey && makerEditedRef.current !== editKey) {
       makerEditedRef.current = editKey;
@@ -1234,7 +1566,18 @@ export function PixelConverter({
         else nextCells.add(cell.index);
       }
       const progressKey = minecraftGrid
-        ? `${MINECRAFT_PROGRESS_PREFIX}:${sourceId}:${minecraftGrid.columns}x${minecraftGrid.rows}`
+        ? minecraftStateKey({
+            prefix: MINECRAFT_PROGRESS_PREFIX,
+            sourceId,
+            mode,
+            minecraftTool,
+            edition,
+            blockVersion,
+            gridWidth: minecraftGrid.columns,
+            gridHeight: minecraftGrid.rows,
+            crop,
+            dither,
+          })
         : '';
       if (
         currentCells.size === 0 &&
@@ -1314,7 +1657,9 @@ export function PixelConverter({
       <div className="flex flex-col gap-3 border-b border-[var(--line)] bg-black/35 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="terminal-label">
-            {isMinecraftGenerator
+            {isMinecraftMapArt
+              ? '/ minecraft map art generator'
+              : isMinecraftGenerator
               ? '/ minecraft pixel art generator'
               : isMinecraftMaker
               ? '/ minecraft block editor'
@@ -1325,7 +1670,9 @@ export function PixelConverter({
                   : '/ open tool'}
           </p>
           <h2 className="mt-2 text-2xl font-black text-[var(--paper)]">
-            {isMinecraftGenerator
+            {isMinecraftMapArt
+              ? 'Create a 128 × 128 Java map art plan with native exports.'
+              : isMinecraftGenerator
               ? 'Generate from an image, edit any block, export a .schematic to paste in game.'
               : isMinecraftMaker
                 ? 'Generate a base, repaint blocks, and export the finished blueprint.'
@@ -1385,11 +1732,13 @@ export function PixelConverter({
             ))}
           </span>
           <span className="font-pixel text-lg leading-relaxed text-[var(--paper)] sm:text-2xl">
-            {isMinecraftMode ? 'Choose a build image' : 'Upload image'}
+            {isMinecraftMapArt ? 'Choose an image for map art' : isMinecraftMode ? 'Choose a build image' : 'Upload image'}
           </span>
           <span className="mt-4 max-w-md text-sm leading-6 text-[var(--paper-muted)] sm:text-base">
             {isMinecraftMode
-              ? 'Drop a clear JPG, PNG, or WebP. Pixvael will map it to Minecraft blocks and build a material list locally.'
+              ? isMinecraftMapArt
+                ? 'Drop a clear JPG, PNG, or WebP. Pixvael crops it to a square 128 × 128 Java map canvas locally.'
+                : 'Drop a clear JPG, PNG, or WebP. Pixvael will map it to Minecraft blocks and build a material list locally.'
               : 'Drop a JPG, PNG, or WebP here. The conversion runs in your browser, so the source image stays on your machine.'}
           </span>
           <span className="pixel-button mt-7 text-sm">Choose file</span>
@@ -1488,7 +1837,9 @@ export function PixelConverter({
             <div>
               <p className="terminal-label">controls</p>
               <p className="mt-2 text-sm leading-6 text-[var(--paper-muted)]">
-                {isMinecraftGenerator
+                {isMinecraftMapArt
+                  ? 'Crop the square framing, inspect the Java map palette, then export the 128 × 128 flat footprint.'
+                  : isMinecraftGenerator
                   ? 'Set the width and block version, repaint any cell that misses, then export the .schematic, blueprint, and material list.'
                   : isMinecraftMaker
                   ? 'Choose the canvas width, then repaint the cells that do not match the build you want.'
@@ -1502,57 +1853,140 @@ export function PixelConverter({
 
             {isMinecraftMode ? (
               <>
-                <label className="block">
-                  <span className="flex items-center justify-between gap-4 font-mono text-sm text-[var(--paper)]">
-                    <span>Build width</span>
-                    <span className="text-[var(--pixel-lime)]">
-                      {targetBlocksAcross} blocks
-                    </span>
-                  </span>
-                  <input
-                    type="range"
-                    min={MINECRAFT_GRID_MIN}
-                    max={MINECRAFT_GRID_MAX}
-                    step={MINECRAFT_GRID_STEP}
-                    value={targetBlocksAcross}
-                    onChange={(event) =>
-                      setTargetBlocksAcross(Number(event.target.value))
-                    }
-                    className="range-control mt-3 w-full"
-                  />
-                  <div className="mt-2 flex justify-between font-mono text-[0.65rem] text-[var(--paper-muted)]">
-                    <span>16</span>
-                    <span>64</span>
-                    <span>128</span>
+                {isMinecraftMapArt ? (
+                  <div className="border border-[var(--line)] bg-black/25 p-3">
+                    <div className="flex items-center justify-between gap-3 font-mono text-sm text-[var(--paper)]">
+                      <span>Map size</span>
+                      <span className="text-[var(--pixel-lime)]">1 × 1</span>
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-[var(--paper-muted)]">
+                      Fixed 128 × 128 Java map canvas. Larger layouts are coming later.
+                    </p>
+                    <div className="mt-3 grid grid-cols-4 gap-1">
+                      {(['2×1', '2×2', '3×3', '4×4'] as const).map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          disabled
+                          className="min-h-9 border border-[var(--line-bright)] px-1 font-mono text-[0.65rem] text-[var(--paper-muted)] opacity-50"
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="mt-4 block">
+                      <span className="flex items-center justify-between gap-3 font-mono text-xs text-[var(--paper)]">
+                        <span>Crop zoom</span>
+                        <span className="text-[var(--pixel-lime)]">{crop.zoom.toFixed(1)}×</span>
+                      </span>
+                      <input
+                        type="range"
+                        min={1}
+                        max={8}
+                        step={0.1}
+                        value={crop.zoom}
+                        onChange={(event) => setCrop((current) => ({ ...current, zoom: Number(event.target.value) }))}
+                        className="range-control mt-2 w-full"
+                      />
+                    </label>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <label className="font-mono text-xs text-[var(--paper-muted)]">
+                        X offset
+                        <input
+                          type="range"
+                          min={-1}
+                          max={1}
+                          step={0.05}
+                          value={crop.offsetX}
+                          onChange={(event) => setCrop((current) => ({ ...current, offsetX: Number(event.target.value) }))}
+                          className="range-control mt-2 w-full"
+                        />
+                      </label>
+                      <label className="font-mono text-xs text-[var(--paper-muted)]">
+                        Y offset
+                        <input
+                          type="range"
+                          min={-1}
+                          max={1}
+                          step={0.05}
+                          value={crop.offsetY}
+                          onChange={(event) => setCrop((current) => ({ ...current, offsetY: Number(event.target.value) }))}
+                          className="range-control mt-2 w-full"
+                        />
+                      </label>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCrop(DEFAULT_CROP)}
+                      className="pixel-button pixel-button-secondary mt-3 w-full text-xs"
+                    >
+                      Reset crop
+                    </button>
                   </div>
-                </label>
+                ) : (
+                  <label className="block">
+                    <span className="flex items-center justify-between gap-4 font-mono text-sm text-[var(--paper)]">
+                      <span>Build width</span>
+                      <span className="text-[var(--pixel-lime)]">
+                        {targetBlocksAcross} blocks
+                      </span>
+                    </span>
+                    <input
+                      type="range"
+                      min={MINECRAFT_GRID_MIN}
+                      max={MINECRAFT_GRID_MAX}
+                      step={MINECRAFT_GRID_STEP}
+                      value={targetBlocksAcross}
+                      onChange={(event) =>
+                        setTargetBlocksAcross(Number(event.target.value))
+                      }
+                      className="range-control mt-3 w-full"
+                    />
+                    <div className="mt-2 flex justify-between font-mono text-[0.65rem] text-[var(--paper-muted)]">
+                      <span>16</span>
+                      <span>64</span>
+                      <span>128</span>
+                    </div>
+                  </label>
+                )}
 
                 <div className="border border-[var(--line)] bg-black/25 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-mono text-sm text-[var(--paper)]">
                       Block palette
                     </p>
-                    <select
-                      value={blockVersion}
-                      onChange={(event) => {
-                        if (isMinecraftVersionId(event.target.value)) {
-                          setBlockVersion(event.target.value);
-                        }
-                      }}
-                      aria-label="Filter blocks by Minecraft version"
-                      className="control-field px-2 py-1.5 text-xs"
-                    >
-                      {MINECRAFT_VERSIONS.map((version) => (
-                        <option key={version.id} value={version.id}>
-                          {version.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex gap-2">
+                      <select
+                        value={edition}
+                        onChange={(event) => setEdition(event.target.value as 'java' | 'bedrock')}
+                        aria-label="Minecraft edition"
+                        className="control-field px-2 py-1.5 text-xs"
+                      >
+                        <option value="java">Java Edition</option>
+                        <option value="bedrock" disabled={isMinecraftMapArt}>Bedrock Edition</option>
+                      </select>
+                      <select
+                        value={blockVersion}
+                        onChange={(event) => {
+                          if (isMinecraftVersionId(event.target.value)) {
+                            setBlockVersion(event.target.value);
+                          }
+                        }}
+                        aria-label="Filter blocks by Minecraft version"
+                        className="control-field px-2 py-1.5 text-xs"
+                      >
+                        {MINECRAFT_VERSIONS.map((version) => (
+                          <option key={version.id} value={version.id}>
+                            {version.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <p className="mt-2 text-xs leading-5 text-[var(--paper-muted)]">
-                    {versionBlocks.length} wool, terracotta, concrete, and
-                    stone colors. Older versions keep every color buildable by
-                    shifting to wool and terracotta.
+                    {isMinecraftMapArt
+                      ? 'Java map palette: wool and terracotta colors with a fixed flat-map canvas.'
+                      : `${versionBlocks.length} wool, terracotta, concrete, and stone colors. Older versions keep every color buildable by shifting to wool and terracotta.`}
                   </p>
                   <div
                     className="mt-3 flex gap-1"
@@ -1774,6 +2208,7 @@ export function PixelConverter({
                         <button
                           key={option.id}
                           type="button"
+                          disabled={isMinecraftMapArt}
                           aria-pressed={schematicOrientation === option.id}
                           onClick={() => setSchematicOrientation(option.id)}
                           className={`min-h-9 px-2 ${
@@ -1794,6 +2229,24 @@ export function PixelConverter({
                     >
                       Download .schematic
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleLitematicDownload}
+                      disabled={isRendering}
+                      className="pixel-button mt-2 w-full text-sm disabled:cursor-wait disabled:opacity-50"
+                    >
+                      Download .litematic
+                    </button>
+                    {!isMinecraftMapArt && (
+                      <button
+                        type="button"
+                        onClick={handleMcstructureDownload}
+                        disabled={isRendering || edition !== 'bedrock'}
+                        className="pixel-button pixel-button-secondary mt-2 w-full text-sm disabled:cursor-wait disabled:opacity-50"
+                      >
+                        Download .mcstructure (Bedrock)
+                      </button>
+                    )}
                   </div>
                 </>
               )}
@@ -1955,7 +2408,7 @@ export function PixelConverter({
                 </div>
                 <div className="text-right font-mono text-xs">
                   <p className="text-[var(--pixel-lime)]">
-                    {versionBlocks.find((block) => block.id === selectedBlockId)?.name}
+                    {minecraftEditorBlocks.find((block) => block.id === selectedBlockId)?.name}
                   </p>
                   <p className="mt-1 text-[var(--paper-muted)]">
                     {editedCellCount} edited · saved locally
@@ -2008,7 +2461,7 @@ export function PixelConverter({
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-10 gap-1 sm:[grid-template-columns:repeat(26,minmax(0,1fr))]" aria-label="Minecraft block paint palette">
-                {versionBlocks.map((block) => (
+                    {minecraftEditorBlocks.map((block) => (
                   <button
                     type="button"
                     key={block.id}
@@ -2024,7 +2477,7 @@ export function PixelConverter({
                         ? 'border-white ring-2 ring-[var(--pixel-lime)]'
                         : 'border-black'
                     }`}
-                    style={{ background: rgbValue(block.color) }}
+                    style={{ background: rgbValue(blockColor(block, isMinecraftMapArt)) }}
                   />
                 ))}
               </div>
@@ -2055,7 +2508,7 @@ export function PixelConverter({
                           : toggleCompletedCell(cell)
                       }
                       className="relative size-10 border-b border-r border-black focus:z-10 focus:outline-2 focus:outline-white"
-                      style={{ background: rgbValue(block.color) }}
+                      style={{ background: rgbValue(blockColor(block, isMinecraftMapArt)) }}
                     >
                       {isComplete && (
                         <span className="absolute inset-0 grid place-items-center bg-[rgba(87,255,143,0.5)] font-mono text-sm font-black text-black">
@@ -2085,7 +2538,7 @@ export function PixelConverter({
                   >
                     <span
                       className="size-6 shrink-0 border border-black"
-                      style={{ background: rgbValue(block.color) }}
+                      style={{ background: rgbValue(blockColor(block, isMinecraftMapArt)) }}
                     />
                     <span className="min-w-0 flex-1 truncate text-xs text-[var(--paper-muted)]">
                       {block.name}
@@ -2130,13 +2583,34 @@ export function PixelConverter({
             <div>
               <p className="terminal-label">material list</p>
               <h3 className="mt-2 text-xl font-black text-[var(--paper)]">
-                {minecraftGrid.columns} x {minecraftGrid.rows} grid
+                {isMinecraftMapArt
+                  ? '1 × 1 map · 128 × 128 pixels'
+                  : `${minecraftGrid.columns} x ${minecraftGrid.rows} grid`}
               </h3>
             </div>
             <p className="font-mono text-sm text-[var(--pixel-lime)]">
               {minecraftBlockTotal.toLocaleString()} blocks
             </p>
           </div>
+          {mapStats && (
+            <div className="mt-3 grid gap-2 border border-[var(--line)] bg-black/25 p-3 font-mono text-xs text-[var(--paper-muted)] sm:grid-cols-2 lg:grid-cols-3">
+              <span>map size 1 × 1</span>
+              <span>Artwork Pixels {mapStats.artworkWidth} × {mapStats.artworkHeight}</span>
+              <span>Build Footprint {mapStats.footprintWidth} × {mapStats.footprintHeight}</span>
+              <span>Non-Air Blocks {minecraftBlockTotal.toLocaleString()}</span>
+              <span>Total Positions {mapStats.totalPositions.toLocaleString()}</span>
+              <span>unique materials {minecraftMaterials.length}</span>
+              <span>estimated stacks {minecraftEstimatedStacks.toLocaleString()}</span>
+            </div>
+          )}
+          {!mapStats && (
+            <div className="mt-3 grid gap-2 border border-[var(--line)] bg-black/25 p-3 font-mono text-xs text-[var(--paper-muted)] sm:grid-cols-2 lg:grid-cols-4">
+              <span>Artwork Pixels {minecraftGrid.columns} × {minecraftGrid.rows}</span>
+              <span>Build Footprint {minecraftGrid.columns} × {minecraftGrid.rows}</span>
+              <span>Non-Air Blocks {minecraftBlockTotal.toLocaleString()}</span>
+              <span>Total Positions {(minecraftGrid.columns * minecraftGrid.rows).toLocaleString()}</span>
+            </div>
+          )}
           <div className="mt-4 grid border-l border-t border-[var(--line)] sm:grid-cols-2 lg:grid-cols-4">
             {minecraftMaterials.map((material) => (
               <div
@@ -2145,7 +2619,7 @@ export function PixelConverter({
               >
                 <span
                   className="size-7 shrink-0 border border-black"
-                  style={{ background: rgbValue(material.color) }}
+                  style={{ background: rgbValue(blockColor(material, isMinecraftMapArt)) }}
                   aria-hidden="true"
                 />
                 <span className="min-w-0 flex-1">
@@ -2167,13 +2641,17 @@ export function PixelConverter({
           <p>
             <span className="font-mono text-[var(--pixel-lime)]">01</span>{' '}
             {isMinecraftMode
-              ? 'Grid dimensions update with build width.'
+              ? isMinecraftMapArt
+                ? 'Square crop and map palette update the 128 × 128 canvas.'
+                : 'Grid dimensions update with build width.'
               : 'Grid preview updates instantly.'}
           </p>
           <p>
             <span className="font-mono text-[var(--pixel-lime)]">02</span>{' '}
             {isMinecraftMode
-              ? 'PNG and material CSV are ready to export.'
+              ? isMinecraftMapArt
+                ? 'Native exports use the same 128 × 128 flat footprint.'
+                : 'PNG and material CSV are ready to export.'
               : 'PNG export keeps hard pixel edges.'}
           </p>
           <p>

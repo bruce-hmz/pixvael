@@ -71,6 +71,14 @@ export const MINECRAFT_BLOCKS: MinecraftBlock[] = [
   { id: 'deepslate', name: 'Deepslate', color: { r: 74, g: 74, b: 74 }, namespacedId: 'minecraft:deepslate', since: '1.17' },
 ];
 
+/** Canonical export registry also contains structural/empty blocks excluded from the texture palette. */
+export const MINECRAFT_CANONICAL_BLOCKS: MinecraftBlock[] = [
+  ...MINECRAFT_BLOCKS,
+  { id: 'dirt', name: 'Dirt', color: { r: 134, g: 96, b: 67 }, namespacedId: 'minecraft:dirt', since: '1.0' },
+  { id: 'glass', name: 'Glass', color: { r: 180, g: 220, b: 220 }, namespacedId: 'minecraft:glass', since: '1.0' },
+  { id: 'air', name: 'Air', color: { r: 0, g: 0, b: 0 }, namespacedId: 'minecraft:air', since: '1.0' },
+];
+
 // 版本筛选档位:id 稳定存进工程文件,since 是该档位允许的最早引入版本。
 export const MINECRAFT_VERSIONS = [
   { id: 'latest', label: 'Latest (1.21+)', since: '1.21' },

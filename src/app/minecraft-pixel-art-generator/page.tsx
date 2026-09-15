@@ -32,7 +32,7 @@ const faqs = [
   {
     question: 'Can I use the export with Litematica or on Bedrock?',
     answer:
-      'The .schematic file pastes directly with WorldEdit on Java Edition, and Litematica users can convert it through Litematica\u2019s schematic converter. On Bedrock, build from the blueprint PNG and material list — the grid and counts are identical. Native .litematic and Bedrock exports are on the roadmap.',
+      'The .schematic file pastes directly with WorldEdit on Java Edition, and the page also exports a native .litematic. The Bedrock option downloads a native .mcstructure with the same grid and counts. For a true flat 128 × 128 Java Map Art build, use the dedicated map art generator.',
   },
   {
     question: 'Does the source image leave my device?',
@@ -46,12 +46,12 @@ export const metadata: Metadata = {
     absolute: 'Minecraft Pixel Art Generator — Free Online Block Art Tool',
   },
   description:
-    'Convert any image to Minecraft blocks free. Edit your pixel art, export .schematic files and build in-game. No sign-up.',
+    'Convert any image to Minecraft blocks free. Edit your pixel art, export native .litematic, .mcstructure, and .schematic files, then build in-game. No sign-up.',
   alternates: { canonical: pageUrl },
   openGraph: {
     title: 'Minecraft Pixel Art Generator — Free Online Block Art Tool',
     description:
-      'Convert any image to Minecraft blocks free. Edit your pixel art, export .schematic files and build in-game. No sign-up.',
+      'Convert any image to Minecraft blocks free. Edit your pixel art, export native Java and Bedrock build files, then build in-game. No sign-up.',
     url: pageUrl,
     images: [{ url: '/hero-minecraft.jpg', width: 1024, height: 559 }],
   },
@@ -76,7 +76,7 @@ export default function MinecraftPixelArtGeneratorPage() {
           { name: 'Upload your image', text: 'Pick any picture to generate from. Everything runs in your browser — the image never leaves your device.' },
           { name: 'Choose your blocks & size', text: 'Set the build width from 16 to 128 blocks and filter the palette to the blocks your Minecraft version can place.' },
           { name: 'Edit block by block', text: 'Paint, pick, and restore individual cells until the art reads right — every edit is undoable and saved locally.' },
-          { name: 'Export .schematic and build', text: 'Download a WorldEdit-ready .schematic as a vertical mural or flat map art, plus the blueprint PNG and material list.' },
+          { name: 'Export native build files', text: 'Download a native .litematic for Java, a .mcstructure for Bedrock, or a WorldEdit-ready .schematic, plus the blueprint PNG and material list.' },
         ],
       }}
       faqs={faqs}
@@ -149,15 +149,18 @@ export default function MinecraftPixelArtGeneratorPage() {
       <section className="pixel-panel mt-8 p-6 sm:p-8">
         <p className="terminal-label">exports</p>
         <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          Four ways out: .schematic, blueprint, materials, project file
+          Native build files, blueprint, materials, and project file
         </h2>
         <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
-          The .schematic export carries the build itself into the game. Drop
-          the file in your schematics folder and WorldEdit pastes it whole;
-          Litematica users can convert it with Litematica&rsquo;s schematic
-          converter. Choose a vertical orientation for murals and wall art,
-          or flat orientation for map art laid on the ground — sized to the
-          128 × 128 area a fully-zoomed map covers. The blueprint PNG keeps
+          The .schematic export carries the build itself into the game, while
+          native .litematic and .mcstructure downloads match Java and Bedrock
+          workflows. Choose a vertical orientation for murals and wall art,
+          or flat orientation for free-form builds laid on the ground. For a
+          fixed 128 × 128 Java map canvas, open the{' '}
+          <a href="/minecraft-map-art-generator" className="text-[var(--pixel-lime)] underline">
+            Minecraft Map Art generator
+          </a>
+          . The blueprint PNG keeps
           hand-building honest with grid lines and coordinates, the material
           CSV turns a survival run into a shopping list, and the project file
           saves your source image, edits, and build progress to continue on
@@ -246,7 +249,7 @@ export default function MinecraftPixelArtGeneratorPage() {
           {
             label: 'export',
             title: '.schematic to WorldEdit',
-            body: 'Vertical for murals, flat for map art — plus blueprint PNG, material CSV, and a project file to resume later.',
+            body: 'Native .litematic, .mcstructure, and .schematic files for Java and Bedrock, plus blueprint PNG, material CSV, and a project file to resume later.',
           },
         ]}
       />
@@ -255,13 +258,13 @@ export default function MinecraftPixelArtGeneratorPage() {
         data={buildWebAppSchema({
           name: 'Pixvael Minecraft Pixel Art Generator',
           description:
-            'Free Minecraft pixel art generator: convert any image to an editable block map, export .schematic, blueprint, and material list — runs locally in your browser.',
+            'Free Minecraft pixel art generator: convert any image to an editable block map, export native Java and Bedrock build files, blueprint, and material list — runs locally in your browser.',
           url: pageUrl,
           featureList: [
             'Local image conversion',
             'Minecraft block palette with version filter',
             'Block editing with undo',
-            'Schematic export',
+            'Native .litematic, .mcstructure, and .schematic export',
             'Material list export',
             'PNG reference export',
           ],

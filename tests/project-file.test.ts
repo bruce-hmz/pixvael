@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import {
   parseProject,
+  projectRestoreState,
   serializeProject,
 } from '../src/lib/project-file.ts';
+import { DEFAULT_CROP } from '../src/lib/crop.ts';
 
 const validInput = {
   gridWidth: 2,
@@ -39,6 +41,54 @@ test('project round-trips with deduped, sorted progress', () => {
   assert.deepEqual(restored.blockIds, validInput.blockIds);
   assert.deepEqual(restored.completedCells, [0, 3]);
   assert.equal(restored.sourceImage, validInput.sourceImage);
+});
+
+test('project round-trips Minecraft mode metadata and crop state', () => {
+  const json = serializeProject({
+    ...validInput,
+    mode: 'map_art',
+    edition: 'java',
+    mapGrid: '1x1',
+    crop: { ...DEFAULT_CROP, aspect: 'square', zoom: 1.25, offsetX: -0.1, offsetY: 0.2 },
+    orientation: 'flat',
+    exportFormat: 'litematic',
+    dither: true,
+  });
+  const restored = parseProject(json);
+
+  assert.equal(restored.mode, 'map_art');
+  assert.equal(restored.edition, 'java');
+  assert.equal(restored.mapGrid, '1x1');
+  assert.deepEqual(restored.crop, {
+    aspect: 'square',
+    zoom: 1.25,
+    offsetX: -0.1,
+    offsetY: 0.2,
+  });
+  assert.equal(restored.orientation, 'flat');
+  assert.equal(restored.exportFormat, 'litematic');
+  assert.equal(restored.dither, true);
+  assert.equal(restored.edition, 'java');
+});
+
+test('project restore helper maps every editor setting and payload', () => {
+  const project = parseProject(serializeProject({
+    ...validInput, mode: 'map_art', edition: 'java', mapGrid: '1x1',
+    crop: { ...DEFAULT_CROP, aspect: 'square' }, orientation: 'flat',
+    exportFormat: 'litematic', dither: true,
+  }));
+  const restored = projectRestoreState(project);
+  assert.equal(restored.mode, 'map_art');
+  assert.equal(restored.edition, 'java');
+  assert.equal(restored.mapGrid, '1x1');
+  assert.deepEqual(restored.blockIds, validInput.blockIds);
+  assert.deepEqual(restored.completedCells, [0, 3]);
+  assert.equal(restored.gridWidth, 2);
+  assert.equal(restored.gridHeight, 2);
+  assert.equal(restored.orientation, 'flat');
+  assert.equal(restored.dither, true);
+  assert.equal(restored.exportFormat, 'litematic');
+  assert.deepEqual(restored.crop, { aspect: 'square', zoom: 1, offsetX: 0, offsetY: 0 });
 });
 
 test('rejects files that are not pixvael projects', () => {

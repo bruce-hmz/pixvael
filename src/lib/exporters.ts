@@ -8,7 +8,10 @@ function triggerDownload(href: string, filename: string) {
   const link = document.createElement('a');
   link.download = filename;
   link.href = href;
+  link.style.display = 'none';
+  document.body.appendChild(link);
   link.click();
+  setTimeout(() => link.remove(), 1000);
 }
 
 export function downloadCanvasPng(canvas: HTMLCanvasElement, filename: string) {
@@ -18,7 +21,8 @@ export function downloadCanvasPng(canvas: HTMLCanvasElement, filename: string) {
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   triggerDownload(url, filename);
-  URL.revokeObjectURL(url);
+  // Let the browser finish starting the download before releasing the blob URL.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // .schematic(MCEdit 经典格式,gzip NBT),供 WorldEdit/Litematica 导入
@@ -28,6 +32,20 @@ export function downloadSchematic(
 ) {
   downloadBlob(
     new Blob([schematic as BlobPart], { type: 'application/octet-stream' }),
+    filename,
+  );
+}
+
+export function downloadLitematic(litematic: Uint8Array, filename: string) {
+  downloadBlob(
+    new Blob([litematic as BlobPart], { type: 'application/octet-stream' }),
+    filename,
+  );
+}
+
+export function downloadMcstructure(mcstructure: Uint8Array, filename: string) {
+  downloadBlob(
+    new Blob([mcstructure as BlobPart], { type: 'application/octet-stream' }),
     filename,
   );
 }

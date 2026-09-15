@@ -4,6 +4,7 @@
 
 import {
   MINECRAFT_BLOCKS,
+  MINECRAFT_CANONICAL_BLOCKS,
   type MinecraftMaterial,
 } from '@/lib/minecraft-blocks';
 
@@ -30,11 +31,15 @@ const BLOCK_BY_RGB = new Map(
     block,
   ]),
 );
-const BLOCK_BY_ID = new Map(MINECRAFT_BLOCKS.map((block) => [block.id, block]));
+const BLOCK_BY_ID = new Map(MINECRAFT_CANONICAL_BLOCKS.map((block) => [block.id, block]));
 
 export function blockIdsFromMinecraftImage(image: ImageData): string[] {
   const blockIds: string[] = [];
   for (let offset = 0; offset < image.data.length; offset += 4) {
+    if (image.data[offset + 3] < 128) {
+      blockIds.push('air');
+      continue;
+    }
     const key = `${image.data[offset]},${image.data[offset + 1]},${image.data[offset + 2]}`;
     blockIds.push(BLOCK_BY_RGB.get(key)?.id ?? MINECRAFT_BLOCKS[0].id);
   }
@@ -52,7 +57,7 @@ export function minecraftImageFromBlockIds(
     data[offset] = block.color.r;
     data[offset + 1] = block.color.g;
     data[offset + 2] = block.color.b;
-    data[offset + 3] = 255;
+    data[offset + 3] = blockId === 'air' ? 0 : 255;
   });
   return new ImageData(data, source.width, source.height);
 }
@@ -60,9 +65,10 @@ export function minecraftImageFromBlockIds(
 export function materialsFromBlockIds(blockIds: string[]): MinecraftMaterial[] {
   const counts = new Map<string, number>();
   blockIds.forEach((blockId) => {
+    if (blockId === 'air') return;
     counts.set(blockId, (counts.get(blockId) ?? 0) + 1);
   });
-  return MINECRAFT_BLOCKS.flatMap((block) => {
+  return MINECRAFT_CANONICAL_BLOCKS.flatMap((block) => {
     const count = counts.get(block.id) ?? 0;
     return count > 0 ? [{ ...block, count }] : [];
   }).sort((a, b) => b.count - a.count);

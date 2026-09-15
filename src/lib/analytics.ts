@@ -11,6 +11,14 @@ export const PIXVAEL_EVENTS = {
   buildResumed: 'build_resumed',
   makerEdited: 'maker_edited',
   modeSwitched: 'mode_switched',
+  minecraftModeSelected: 'minecraft_mode_selected',
+  minecraftMapArtStarted: 'minecraft_map_art_started',
+  minecraftMapSizeSelected: 'minecraft_map_size_selected',
+  minecraftMapConversionCompleted: 'minecraft_map_conversion_completed',
+  minecraftMapMaterialsViewed: 'minecraft_map_materials_viewed',
+  minecraftMapExportStarted: 'minecraft_map_export_started',
+  minecraftExportLitematic: 'minecraft_export_litematic',
+  minecraftExportMcstructure: 'minecraft_export_mcstructure',
 } as const;
 
 export type PixvaelEventName =

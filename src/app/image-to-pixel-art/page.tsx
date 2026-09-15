@@ -151,7 +151,15 @@ export default function ImageToPixelArtPage() {
             image-to-Minecraft flow
           </a>
           , which adds material lists and sectioned blueprints on top of the
-          pixel art.
+          pixel art. If you already know you want a build-ready Minecraft
+          project with native exports and block editing, use the{' '}
+          <a
+            href="/minecraft-pixel-art-generator"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            Minecraft pixel art generator
+          </a>
+          .
         </p>
       </section>
 

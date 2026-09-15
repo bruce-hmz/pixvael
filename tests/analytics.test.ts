@@ -73,3 +73,9 @@ test('trackEvent is a safe no-op during server rendering', () => {
     }
   }
 });
+
+test('Minecraft native export event names match the analytics contract', () => {
+  assert.equal(PIXVAEL_EVENTS.minecraftExportLitematic, 'minecraft_export_litematic');
+  assert.equal(PIXVAEL_EVENTS.minecraftExportMcstructure, 'minecraft_export_mcstructure');
+  assert.equal(PIXVAEL_EVENTS.minecraftMapExportStarted, 'minecraft_map_export_started');
+});

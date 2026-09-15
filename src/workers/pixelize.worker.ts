@@ -3,6 +3,8 @@
 import { countMinecraftMaterials, MINECRAFT_PALETTE } from '@/lib/minecraft-blocks';
 import { getPalette } from '@/lib/palettes';
 import { pixelize } from '@/lib/pixelize';
+import { mapBlockIdsFromImage, mapImageFromBlockIds } from '@/lib/minecraft-map-art';
+import { materialsFromBlockIds } from '@/lib/minecraft-canvas';
 import type {
   PixelizeWorkerRequest,
   PixelizeWorkerResponse,
@@ -18,6 +20,7 @@ workerScope.onmessage = (event: MessageEvent<PixelizeWorkerRequest>) => {
     paletteColors,
     dither,
     includeMinecraftMaterials,
+    mode,
   } = event.data;
   const palette =
     paletteColors && paletteColors.length > 0
@@ -26,14 +29,21 @@ workerScope.onmessage = (event: MessageEvent<PixelizeWorkerRequest>) => {
         ? MINECRAFT_PALETTE
         : getPalette(paletteId);
   const result = pixelize(source, { pixelSize, palette, dither });
+  const mapBlockIds = mode === 'map_art' ? mapBlockIdsFromImage(result) : null;
+  const displayResult = mapBlockIds
+    ? mapImageFromBlockIds(result, mapBlockIds)
+    : result;
   const response: PixelizeWorkerResponse = {
-    result,
+    result: displayResult,
     materials: includeMinecraftMaterials
-      ? countMinecraftMaterials(result)
+      ? mapBlockIds
+        ? materialsFromBlockIds(mapBlockIds)
+        : countMinecraftMaterials(result)
       : [],
+    ...(mapBlockIds ? { blockIds: mapBlockIds } : {}),
   };
 
-  workerScope.postMessage(response, [result.data.buffer]);
+  workerScope.postMessage(response, [displayResult.data.buffer]);
 };
 
 export {};

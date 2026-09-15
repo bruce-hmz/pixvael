@@ -1,5 +1,5 @@
 // 极简 Java NBT(命名二进制标签)写入器,大端序。
-// 只覆盖 .schematic 导出需要的标签类型;纯函数式字节构建,node 与浏览器通用。
+// 覆盖 .schematic 与 .litematic 导出需要的标签类型;纯函数式字节构建,node 与浏览器通用。
 
 export const TAG_END = 0;
 export const TAG_BYTE = 1;
@@ -13,6 +13,7 @@ export const TAG_STRING = 8;
 export const TAG_LIST = 9;
 export const TAG_COMPOUND = 10;
 export const TAG_INT_ARRAY = 11;
+export const TAG_LONG_ARRAY = 12;
 
 // Java 修改版 UTF-8:按 UTF-16 码元逐个编码,NUL 编码为 C0 80,
 // 增补字符以代理对形式各编 3 字节。ASCII 输入与标准 UTF-8 完全一致。
@@ -90,8 +91,15 @@ export class NbtWriter {
     );
   }
 
-  // TAG_Long 不需要:.schematic 输出不含 64 位整数字段,故不提供 long(),
-  // 也避免在低 target 下引入 BigInt 字面量。
+  long(value: number) {
+    const high = Math.floor(value / 0x100000000);
+    const low = value >>> 0;
+    this.int(high); this.int(low);
+  }
+
+  longParts(high: number, low: number) {
+    this.int(high); this.int(low);
+  }
 
   float(value: number) {
     const view = new DataView(new ArrayBuffer(4));
@@ -119,6 +127,16 @@ export class NbtWriter {
     for (const value of values) {
       this.int(value);
     }
+  }
+
+  longArray(values: number[]) {
+    this.int(values.length);
+    for (const value of values) this.long(value);
+  }
+
+  longPartsArray(values: Array<{ high: number; low: number }>) {
+    this.int(values.length);
+    for (const value of values) this.longParts(value.high, value.low);
   }
 
   string(value: string) {
