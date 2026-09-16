@@ -3,6 +3,7 @@
 
 import type { MinecraftBlock, MinecraftMaterial } from '@/lib/minecraft-blocks';
 import { rgbValue, type MinecraftCell, type MinecraftGrid } from '@/lib/minecraft-canvas';
+import { mapDisplayColor } from '@/lib/minecraft-map-art';
 
 function triggerDownload(href: string, filename: string) {
   const link = document.createElement('a');
@@ -157,6 +158,7 @@ export function downloadBlueprintPng(
 
 export type ZoneBlueprintInput = {
   cells: Array<{ cell: MinecraftCell; block: MinecraftBlock }>;
+  mode?: 'pixel_art' | 'map_art';
   startColumn: number;
   startRow: number;
   endColumn: number;
@@ -166,7 +168,7 @@ export type ZoneBlueprintInput = {
 
 // 区块蓝图:单区块放大 44px/格 + 每格标行列号
 export function downloadZoneBlueprintPng(input: ZoneBlueprintInput, filename: string) {
-  const { cells, startColumn, startRow, endColumn, endRow, activeSectionIndex } = input;
+  const { cells, startColumn, startRow, endColumn, endRow, activeSectionIndex, mode = 'pixel_art' } = input;
   const columns = endColumn - startColumn;
   const rows = endRow - startRow;
   const cellSize = 44;
@@ -196,7 +198,7 @@ export function downloadZoneBlueprintPng(input: ZoneBlueprintInput, filename: st
     const localRow = cell.row - startRow;
     const x = leftMargin + localColumn * cellSize;
     const y = topMargin + localRow * cellSize;
-    ctx.fillStyle = rgbValue(block.color);
+    ctx.fillStyle = rgbValue(mode === 'map_art' ? mapDisplayColor(block.id) : block.color);
     ctx.fillRect(x, y, cellSize, cellSize);
     ctx.strokeStyle = 'rgba(0,0,0,0.52)';
     ctx.lineWidth = 1;

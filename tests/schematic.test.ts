@@ -155,6 +155,17 @@ test('terracotta and neutral blocks map to their legacy ids', () => {
   assert.deepEqual(Array.from(parsed.Data as Uint8Array), [0, 0, 0, 0]);
 });
 
+test('schematic preserves an internal air cell and glass legacy id', () => {
+  const parsed = parseSchematic(buildMinecraftSchematic({
+    columns: 3,
+    rows: 1,
+    blockIds: ['stone', 'air', 'glass'],
+  }));
+  assert.deepEqual([parsed.Width, parsed.Height, parsed.Length], [3, 1, 1]);
+  assert.deepEqual(Array.from(parsed.Blocks as Uint8Array), [1, 0, 20]);
+  assert.deepEqual(Array.from(parsed.Data as Uint8Array), [0, 0, 0]);
+});
+
 test('deepslate goes through AddBlocks and SchematicaMapping', () => {
   const parsed = parseSchematic(
     buildMinecraftSchematic({

@@ -109,3 +109,24 @@ test('mcstructure writes explicit Bedrock oak and deepslate identities', () => {
   assert.deepEqual(entries.map((entry) => entry.name), ['minecraft:air', 'minecraft:oak_planks', 'minecraft:deepslate']);
   assert.deepEqual(entries[2].states, { pillar_axis: 'y' });
 });
+
+test('mcstructure explicit flat orientation preserves row-major 3x5 grid', () => {
+  const ids = ['black-concrete', 'gray-concrete', 'light-gray-concrete', 'white-concrete', 'red-concrete', 'orange-concrete', 'yellow-concrete', 'lime-concrete', 'green-concrete', 'cyan-concrete', 'light-blue-concrete', 'blue-concrete', 'purple-concrete', 'magenta-concrete', 'pink-concrete'];
+  const { root } = parseMcstructure(buildMcstructure({ columns: 3, rows: 5, blockIds: ids, orientation: 'flat' }));
+  assert.deepEqual(root.size, [3, 1, 5]);
+  const palette = (((root.structure as Record<string, Value>).palette as Record<string, Value>).default as Record<string, Value>).block_palette as Array<Record<string, Value>>;
+  const indexes = new Map(palette.map((entry, index) => [entry.name, index]));
+  const names = ids.map((id) => `minecraft:${id.replaceAll('-', '_')}`);
+  assert.deepEqual((root.structure as Record<string, Value>).block_indices, [Array.from({ length: 3 }, (_, x) => Array.from({ length: 5 }, (_, z) => indexes.get(names[z * 3 + x])!)).flat(), Array(15).fill(-1)]);
+});
+
+test('mcstructure explicit vertical orientation flips source rows into Y', () => {
+  const ids = ['black-concrete', 'gray-concrete', 'light-gray-concrete', 'white-concrete', 'red-concrete', 'orange-concrete', 'yellow-concrete', 'lime-concrete', 'green-concrete', 'cyan-concrete', 'light-blue-concrete', 'blue-concrete', 'purple-concrete', 'magenta-concrete', 'pink-concrete'];
+  const { root } = parseMcstructure(buildMcstructure({ columns: 3, rows: 5, blockIds: ids, orientation: 'vertical' }));
+  assert.deepEqual(root.size, [3, 5, 1]);
+  const palette = (((root.structure as Record<string, Value>).palette as Record<string, Value>).default as Record<string, Value>).block_palette as Array<Record<string, Value>>;
+  const indexes = new Map(palette.map((entry, index) => [entry.name, index]));
+  const toIndex = (id: string) => indexes.get(`minecraft:${id.replaceAll('-', '_')}`)!;
+  const expected = Array.from({ length: 3 }, (_, x) => Array.from({ length: 5 }, (_, y) => toIndex(ids[(4 - y) * 3 + x]))).flat();
+  assert.deepEqual((root.structure as Record<string, Value>).block_indices, [expected, Array(15).fill(-1)]);
+});

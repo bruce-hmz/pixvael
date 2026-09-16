@@ -183,11 +183,12 @@ export function PixelConverter({
   defaultMinecraftGridWidth,
 }: Props) {
   const isMinecraftMode = mode === 'minecraft';
+  const [restoredMinecraftMode, setRestoredMinecraftMode] = useState<'pixel_art' | 'map_art' | null>(null);
   const isMinecraftMaker = isMinecraftMode && minecraftTool === 'maker';
   const isMinecraftConverter = isMinecraftMode && minecraftTool === 'converter';
   // generator 页是完整闭环:编辑面板与 maker 同源,加上 .schematic/工程导出
   const isMinecraftGenerator = isMinecraftMode && minecraftTool === 'generator';
-  const isMinecraftMapArt = isMinecraftMode && minecraftTool === 'map-art';
+  const isMinecraftMapArt = isMinecraftMode && (restoredMinecraftMode === 'map_art' || (restoredMinecraftMode === null && minecraftTool === 'map-art'));
   const supportsBlockEditor = isMinecraftMaker || isMinecraftGenerator || isMinecraftMapArt;
   const sourceCanvasRef = useRef<HTMLCanvasElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -245,6 +246,16 @@ export function PixelConverter({
   const [selectedBlockId, setSelectedBlockId] = useState(
     isMinecraftMapArt ? 'white-wool' : 'white-concrete',
   );
+  useEffect(() => {
+    if (!isMinecraftMode) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restore a mode-dependent selection after project mode changes
+    setSelectedBlockId((current) => {
+      const valid = isMinecraftMapArt
+        ? JAVA_MAP_BLOCKS.some((block) => block.id === current) || current === 'air'
+        : MINECRAFT_CANONICAL_BLOCKS.some((block) => block.id === current);
+      return valid ? current : isMinecraftMapArt ? 'white-wool' : 'white-concrete';
+    });
+  }, [isMinecraftMapArt, isMinecraftMode]);
   const [makerTool, setMakerTool] = useState<'paint' | 'pick' | 'restore' | 'build'>('paint');
   const [editHistory, setEditHistory] = useState<string[][]>([]);
   const [editHistoryIndex, setEditHistoryIndex] = useState(-1);
@@ -793,7 +804,7 @@ export function PixelConverter({
   }, [blockVersion, completedCells, crop, dither, edition, isMinecraftMode, minecraftGrid, mode, minecraftTool, sourceId]);
 
   useEffect(() => {
-    if (!isMinecraftMode || image) return;
+    if (!isMinecraftMode || image || pendingProjectRef.current) return;
     const rememberedImage = sessionStorage.getItem(SESSION_IMAGE_KEY);
     if (!rememberedImage) return;
 
@@ -817,6 +828,7 @@ export function PixelConverter({
   }, [image, isMinecraftMode]);
 
   const handleFile = useCallback((file: File, inputMethod: 'file_or_drop' | 'chrome_extension' = 'file_or_drop') => {
+    setRestoredMinecraftMode(null);
     setError(null);
     setIsRestoredImage(false);
     setConverterPreviews([]);
@@ -1187,10 +1199,9 @@ export function PixelConverter({
       const mcstructure = buildMcstructure({
         columns: minecraftGrid.columns,
         rows: minecraftGrid.rows,
-        blockIds: Array.from({ length: minecraftGrid.columns }, (_, x) =>
-          Array.from({ length: minecraftGrid.rows }, (_, z) => minecraftCellBlockIds[z * minecraftGrid.columns + x]),
-        ).flat(),
+        blockIds: minecraftCellBlockIds,
         depth: 1,
+        orientation: schematicOrientation,
       });
       downloadMcstructure(mcstructure, 'pixvael-pixel-art.mcstructure');
       trackPixelEvent(PIXVAEL_EVENTS.minecraftExportMcstructure, {
@@ -1201,7 +1212,7 @@ export function PixelConverter({
     } catch (error) {
       setError(error instanceof Error ? `mcstructure export failed: ${error.message}` : 'mcstructure export failed.');
     }
-  }, [isMinecraftMapArt, minecraftCellBlockIds, minecraftGrid, trackPixelEvent]);
+  }, [isMinecraftMapArt, minecraftCellBlockIds, minecraftGrid, schematicOrientation, trackPixelEvent]);
 
   const handleProjectSave = useCallback(() => {
     if (!minecraftGrid || !image) return;
@@ -1264,10 +1275,21 @@ export function PixelConverter({
         const project = parseProject(await file.text());
         pendingProjectRef.current = project;
         renderedSourceRef.current = '';
+        setImage(null);
+        setMinecraftGrid(null);
+        setMinecraftMaterials([]);
+        setMinecraftCellBlockIds([]);
+        setOriginalMinecraftCellBlockIds([]);
+        setCompletedCells(new Set());
+        setHoveredCell(null);
+        setHoveredBlock(null);
+        setEditHistory([]);
+        setEditHistoryIndex(-1);
         setBlockVersion(
           isMinecraftVersionId(project.blockVersion) ? project.blockVersion : 'latest',
         );
         const restoredState = projectRestoreState(project);
+        setRestoredMinecraftMode(restoredState.mode);
         if (restoredState.crop) setCrop(restoredState.crop);
         setSchematicOrientation(restoredState.orientation);
         setDither(restoredState.dither);
@@ -1641,6 +1663,7 @@ export function PixelConverter({
     downloadZoneBlueprintPng(
       {
         cells: activeSectionCells,
+        mode: isMinecraftMapArt ? 'map_art' : 'pixel_art',
         startColumn: sectionStartColumn,
         startRow: sectionStartRow,
         endColumn: sectionEndColumn,

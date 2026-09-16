@@ -51,9 +51,11 @@ const FAMILY_LEGACY_IDS: Record<string, number> = {
 
 // 自带固定遗留编号的中性方块
 const NEUTRAL_LEGACY: Record<string, number> = {
+  air: 0,
   stone: 1,
   'oak-planks': 5,
   sandstone: 24,
+  glass: 20,
 };
 
 // 扁平化后新增、需要 AddBlocks 扩展的方块:分配 >255 的编号,
@@ -62,7 +64,7 @@ const EXTENDED_LEGACY: Record<string, number> = {
   deepslate: 256,
 };
 
-const KNOWN_BLOCK_IDS = new Set(MINECRAFT_BLOCKS.map((block) => block.id));
+const KNOWN_BLOCK_IDS = new Set(['air', 'glass', ...MINECRAFT_BLOCKS.map((block) => block.id)]);
 
 const BLOCK_BY_ID = new Map(MINECRAFT_BLOCKS.map((block) => [block.id, block]));
 

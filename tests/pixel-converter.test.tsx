@@ -4,8 +4,10 @@
 // 聚焦"纯渲染可验证"的组件契约。
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { fireEvent, render, screen, cleanup, waitFor } from '@testing-library/react';
 import { PixelConverter } from '../src/components/PixelConverter';
+import { DEFAULT_CROP } from '../src/lib/crop';
+import { serializeProject } from '../src/lib/project-file';
 
 beforeEach(() => {
   // jsdom 的 canvas getContext 返回 null;PixelConverter 空状态下不绘制,
@@ -62,5 +64,34 @@ describe('PixelConverter 空状态(上传前)', () => {
       />,
     );
     expect(screen.getByText('/ open tool')).toBeInTheDocument();
+  });
+
+  it('generator 打开 map_art 工程后立即应用 Map Art 运行时语义', async () => {
+    render(<PixelConverter mode="minecraft" minecraftTool="generator" />);
+    expect(screen.getByText('/ minecraft pixel art generator')).toBeInTheDocument();
+    const json = serializeProject({
+      gridWidth: 128,
+      gridHeight: 128,
+      blockVersion: 'latest',
+      blockIds: Array.from({ length: 128 * 128 }, (_, index) => index === 0 ? 'red-wool' : 'white-wool'),
+      completedCells: [0],
+      sourceImage: 'data:image/png;base64,aGVsbG8=',
+      mode: 'map_art',
+      edition: 'java',
+      mapGrid: '1x1',
+      crop: { ...DEFAULT_CROP, aspect: 'square', zoom: 1.5, offsetX: 0.1, offsetY: -0.1 },
+      orientation: 'flat',
+      exportFormat: 'litematic',
+      dither: false,
+    });
+    const file = new File([json], 'map.json', { type: 'application/json' });
+    if (!file.text) Object.defineProperty(file, 'text', { value: async () => json });
+    fireEvent.change(screen.getByLabelText('Open a Pixvael project file'), {
+      target: { files: [file] },
+    });
+    await waitFor(() => {
+      expect(screen.getByText('/ minecraft map art generator')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Choose an image for map art')).toBeInTheDocument();
   });
 });

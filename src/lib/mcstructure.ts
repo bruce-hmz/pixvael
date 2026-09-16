@@ -72,6 +72,7 @@ export type McstructureOptions = {
   depth?: number;
   /** Bedrock block version integer. Defaults to 1.21.60 (18168865). */
   version?: number;
+  orientation?: 'vertical' | 'flat';
 };
 
 const BLOCK_BY_ID = new Map(MINECRAFT_CANONICAL_BLOCKS.map((block) => [block.id, block]));
@@ -172,6 +173,7 @@ export function buildMcstructure({
   blockIds,
   depth = 1,
   version = 18168865,
+  orientation,
 }: McstructureOptions): Uint8Array {
   if (
     !Number.isInteger(columns) || columns <= 0 ||
@@ -197,7 +199,19 @@ export function buildMcstructure({
   ];
   const paletteIndex = new Map(palette.map((block, index) => [block.id, index]));
   // blockIds are already native Bedrock order: flatten=((x*sizeY+y)*sizeZ+z).
-  const indices = blocks.map((block) => paletteIndex.get(block.id)!);
+  const indices = orientation === undefined
+    ? blocks.map((block) => paletteIndex.get(block.id)!)
+    : Array.from({ length: volume }, (_, index) => {
+        const height = orientation === 'vertical' ? rows : depth;
+        const length = orientation === 'vertical' ? depth : rows;
+        const column = Math.floor(index / (height * length));
+        const inner = index % (height * length);
+        const y = Math.floor(inner / length);
+        const z = inner % length;
+        const sourceRow = orientation === 'vertical' ? rows - 1 - y : z;
+        const sourceLayer = orientation === 'vertical' ? z : y;
+        return paletteIndex.get(blocks[sourceLayer * columns * rows + sourceRow * columns + column].id)!;
+      });
 
   const writer = new LittleEndianNbtWriter();
   writer.tag(TAG_COMPOUND, '');
@@ -207,8 +221,8 @@ export function buildMcstructure({
   writer.tag(TAG_LIST, 'size');
   writer.listHeader(TAG_INT, 3);
   writer.int(columns);
-  writer.int(depth);
-  writer.int(rows);
+  writer.int(orientation === 'vertical' ? rows : depth);
+  writer.int(orientation === 'vertical' ? depth : rows);
   writer.tag(TAG_LIST, 'structure_world_origin');
   writer.list(TAG_INT, [0, 0, 0]);
 
