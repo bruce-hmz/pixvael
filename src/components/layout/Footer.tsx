@@ -57,6 +57,12 @@ export function Footer() {
           >
             Tutorials
           </Link>
+          <Link
+            href="/privacy"
+            className="hidden md:inline hover:text-[var(--pixel-lime)]"
+          >
+            Privacy
+          </Link>
           <span className="hidden md:inline">100%</span>
         </nav>
       </div>
