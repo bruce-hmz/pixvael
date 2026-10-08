@@ -216,7 +216,7 @@ export default function ImageToPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
           { name: 'Image to Pixel Art', url: pageUrl },
         ])}
       />

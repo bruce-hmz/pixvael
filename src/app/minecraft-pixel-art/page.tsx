@@ -148,6 +148,20 @@ export default function MinecraftPixelArtPage() {
             >
               size converter
             </a>
+            ; to generate and export a native build file in one pass, use the{' '}
+            <a
+              href="/minecraft-pixel-art-generator"
+              className="text-[var(--pixel-lime)] underline"
+            >
+              Minecraft pixel art generator
+            </a>
+            ; and for flat 1 × 1 Java map art, use the{' '}
+            <a
+              href="/minecraft-map-art-generator"
+              className="text-[var(--pixel-lime)] underline"
+            >
+              map art generator
+            </a>
             .
           </p>
         </section>
@@ -282,7 +296,7 @@ export default function MinecraftPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
           { name: 'Minecraft Build Planner', url: pageUrl },
         ])}
       />

@@ -53,6 +53,7 @@ export default function MinecraftMapArtGeneratorPage() {
   return (
     <PixelLanding
       eyebrow="/ minecraft map art generator"
+      breadcrumbs={[{ name: 'Minecraft Pixel Art', href: '/minecraft-pixel-art' }]}
       title="Minecraft map art generator"
       description="Turn one image into a 128 × 128 Java map art plan, crop the framing, edit any block, and export the flat build."
       mode="minecraft"
@@ -100,7 +101,29 @@ export default function MinecraftMapArtGeneratorPage() {
           </a>
           , where you choose the build width and can make vertical murals or
           Bedrock structures. Multi-map layouts are visible as a future path,
-          but the current tool keeps 1 × 1 production quality first.
+          but the current tool keeps 1 × 1 production quality first. For the
+          rest of the Minecraft flow, start with a quick{' '}
+          <a
+            href="/image-to-minecraft-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            image-to-Minecraft conversion
+          </a>
+          , compare widths on the{' '}
+          <a
+            href="/minecraft-pixel-art-converter"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            size converter
+          </a>
+          , and track larger builds with the{' '}
+          <a
+            href="/minecraft-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            Minecraft pixel art planner
+          </a>
+          .
         </p>
       </section>
       <section className="pixel-panel mt-8 p-6 sm:p-8">
@@ -136,7 +159,8 @@ export default function MinecraftMapArtGeneratorPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Minecraft Pixel Art', url: 'https://pixvael.com/minecraft-pixel-art' },
           { name: 'Minecraft Map Art Generator', url: pageUrl },
         ])}
       />

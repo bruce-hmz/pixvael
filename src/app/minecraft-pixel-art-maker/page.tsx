@@ -45,6 +45,7 @@ export default function MinecraftPixelArtMakerPage() {
   return (
     <PixelLanding
       eyebrow="/ minecraft pixel art maker"
+      breadcrumbs={[{ name: 'Minecraft Pixel Art', href: '/minecraft-pixel-art' }]}
       title="Minecraft pixel art maker"
       description="Upload a photo, then edit the generated Minecraft art block by block. Paint with real block colors, pick or restore cells, and export the finished blueprint locally."
       defaultPixelSize={12}
@@ -133,7 +134,8 @@ export default function MinecraftPixelArtMakerPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Minecraft Pixel Art', url: 'https://pixvael.com/minecraft-pixel-art' },
           { name: 'Minecraft Pixel Art Maker', url: pageUrl },
         ])}
       />

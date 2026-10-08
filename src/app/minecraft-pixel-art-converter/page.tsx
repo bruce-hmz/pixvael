@@ -47,6 +47,7 @@ export default function MinecraftPixelArtConverterPage() {
   return (
     <PixelLanding
       eyebrow="/ minecraft pixel art converter"
+      breadcrumbs={[{ name: 'Minecraft Pixel Art', href: '/minecraft-pixel-art' }]}
       title="Minecraft pixel art converter"
       description="Compare compact, standard, and detailed Minecraft conversions side by side. See exact dimensions and material complexity before choosing a plan to export."
       defaultPixelSize={12}
@@ -143,7 +144,8 @@ export default function MinecraftPixelArtConverterPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Minecraft Pixel Art', url: 'https://pixvael.com/minecraft-pixel-art' },
           { name: 'Minecraft Pixel Art Converter', url: pageUrl },
         ])}
       />

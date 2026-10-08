@@ -45,6 +45,7 @@ export default function JpgToPixelArtPage() {
   return (
     <PixelLanding
       eyebrow="/ jpg to pixel art"
+      breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="JPG to pixel art"
       description="Drop a JPG photo and get crisp pixel art in seconds. Choose a block size and palette, add dithering, and download a sharp PNG — all in your browser."
       defaultPixelSize={8}
@@ -110,6 +111,15 @@ export default function JpgToPixelArtPage() {
             Minecraft build planner
           </a>{' '}
           for material counts and blueprints.
+         For the full walkthrough of every
+          control — grids, palettes, dithering, and export — start with the{' '}
+          <a
+            href="/image-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            image to pixel art
+          </a>{' '}
+          guide.
         </p>
       </section>
 
@@ -149,7 +159,8 @@ export default function JpgToPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Image to Pixel Art', url: 'https://pixvael.com/image-to-pixel-art' },
           { name: 'JPG to Pixel Art', url: pageUrl },
         ])}
       />

@@ -6,7 +6,6 @@ import { JsonLd } from '@/components/JsonLd';
 import { FaqSection, InfoGrid } from '@/components/PixelLanding';
 import { TrackedModeLink } from '@/components/TrackedModeLink';
 import {
-  buildBreadcrumbSchema,
   buildWebAppSchema,
   buildFaqSchema,
   buildOrganizationSchema,
@@ -110,8 +109,13 @@ const showcaseCases = [
     title: 'Image to Minecraft Pixel Art',
     body: (
       <>
-        Convert a scene into block-scale pixel art you can rebuild in a
-        Minecraft world. The{' '}
+        <a
+          href="/image-to-minecraft-pixel-art"
+          className="text-[var(--pixel-lime)] underline"
+        >
+          Convert an image to Minecraft pixel art
+        </a>{' '}
+        you can rebuild in a world. The{' '}
         <a
           href="/minecraft-pixel-art-generator"
           className="text-[var(--pixel-lime)] underline"
@@ -141,16 +145,16 @@ export default function Home() {
     <div className="page-shell">
       <section className="rail-frame grid gap-8 px-4 py-8 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
         <div className="py-2 sm:py-6 lg:py-0">
-          <p className="terminal-label">/ image to pixel art</p>
+          <p className="terminal-label">/ pixel art tools</p>
           <h1 className="crt-title mt-5 max-w-[320px] break-words text-[3rem] leading-[1.03] sm:max-w-5xl sm:text-[clamp(3.2rem,6vw,5.6rem)]">
-            <span className="block text-[var(--paper)] [text-shadow:none]">Turn any </span>
-            <span className="block text-[var(--paper)] [text-shadow:none] sm:inline">image to </span>
-            <span className="block text-[var(--pixel-lime)] sm:inline">pixel art</span>
+            <span className="block text-[var(--paper)] [text-shadow:none]">Free Online </span>
+            <span className="block text-[var(--pixel-lime)] sm:inline">Pixel Art Tools</span>
           </h1>
           <p className="mt-8 max-w-[320px] text-base leading-7 text-[var(--paper)] sm:max-w-2xl sm:text-lg">
-            Transform photos into crisp pixel art instantly. Customize block
-            size, palette, and dithering, then export a sharp PNG. Image
-            processing runs in your browser with no signup and no upload.
+            Turn any image into crisp pixel art — or rebuild a photo as a
+            Minecraft build. Customize block size, palette, and dithering, then
+            export a sharp PNG. Image processing runs in your browser with no
+            signup and no upload.
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:max-w-md sm:flex-row">
@@ -389,13 +393,150 @@ export default function Home() {
       </section>
 
       <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">every source</p>
+        <p className="terminal-label">all tools</p>
         <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          One engine, a converter page per source
+          Every Pixvael tool, one page per job
         </h2>
         <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
-          Every Pixvael page runs the same local converter, preset for what you
-          bring it. Bring a{' '}
+          All pages run the same local converter, preset for what you bring
+          it. Pick the entry that matches your source and goal.
+        </p>
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+          <div>
+            <h3 className="text-lg font-black text-[var(--paper)]">
+              Convert any image
+            </h3>
+            <ul className="mt-4 grid gap-3">
+              {[
+                {
+                  href: '/image-to-pixel-art',
+                  name: 'Image to Pixel Art',
+                  desc: 'The main converter — any image, full color or retro palettes, sharp PNG export.',
+                },
+                {
+                  href: '/photo-to-pixel-art',
+                  name: 'Photo to Pixel Art',
+                  desc: 'Recipes tuned for portraits, pets, and camera photos.',
+                },
+                {
+                  href: '/picture-to-pixel-art',
+                  name: 'Picture to Pixel Art',
+                  desc: 'Drawings, screenshots, and pictures into pixel art.',
+                },
+                {
+                  href: '/jpg-to-pixel-art',
+                  name: 'JPG to Pixel Art',
+                  desc: 'JPG presets that keep contrast after pixelation.',
+                },
+                {
+                  href: '/png-to-pixel-art',
+                  name: 'PNG to Pixel Art',
+                  desc: 'PNG conversion with transparency preserved.',
+                },
+                {
+                  href: '/webp-to-pixel-art',
+                  name: 'WebP to Pixel Art',
+                  desc: 'Modern WebP images straight into pixel art.',
+                },
+                {
+                  href: '/pixel-art-converter',
+                  name: 'Pixel Art Converter',
+                  desc: 'The format-agnostic converter, framed by palette and export.',
+                },
+              ].map((tool) => (
+                <li key={tool.href}>
+                  <a
+                    href={tool.href}
+                    className="block border border-[var(--line-bright)] bg-black/30 p-3 transition-colors hover:border-[var(--pixel-lime)]"
+                  >
+                    <span className="text-sm font-black text-[var(--paper)]">
+                      {tool.name}
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-[var(--paper-muted)]">
+                      {tool.desc}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-black text-[var(--paper)]">
+              Minecraft builds
+            </h3>
+            <ul className="mt-4 grid gap-3">
+              {[
+                {
+                  href: '/image-to-minecraft-pixel-art',
+                  name: 'Image to Minecraft Pixel Art',
+                  desc: 'One image in — a block map and material list out.',
+                },
+                {
+                  href: '/minecraft-pixel-art',
+                  name: 'Minecraft Pixel Art',
+                  desc: 'Section-by-section build planner with progress tracking.',
+                },
+                {
+                  href: '/minecraft-pixel-art-generator',
+                  name: 'Minecraft Pixel Art Generator',
+                  desc: 'Generate, edit blocks, export build files with material counts.',
+                },
+                {
+                  href: '/minecraft-pixel-art-converter',
+                  name: 'Minecraft Pixel Art Converter',
+                  desc: 'Compare 24, 32, 48, and 64 block sizes side by side.',
+                },
+                {
+                  href: '/minecraft-pixel-art-maker',
+                  name: 'Minecraft Pixel Art Maker',
+                  desc: 'Paint, pick, and restore individual blocks by hand.',
+                },
+                {
+                  href: '/minecraft-map-art-generator',
+                  name: 'Minecraft Map Art Generator',
+                  desc: 'Java map art on a flat 128 × 128 canvas.',
+                },
+              ].map((tool) => (
+                <li key={tool.href}>
+                  <a
+                    href={tool.href}
+                    className="block border border-[var(--line-bright)] bg-black/30 p-3 transition-colors hover:border-[var(--pixel-lime)]"
+                  >
+                    <span className="text-sm font-black text-[var(--paper)]">
+                      {tool.name}
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-[var(--paper-muted)]">
+                      {tool.desc}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs leading-5 text-[var(--paper-muted)]">
+              New to Minecraft builds? Start with the{' '}
+              <a
+                href="/tutorials/how-to-make-pixel-art-in-minecraft"
+                className="text-[var(--pixel-lime)] underline"
+              >
+                beginner tutorial
+              </a>{' '}
+              or the{' '}
+              <a
+                href="/tutorials/minecraft-image-to-pixel-art-guide"
+                className="text-[var(--pixel-lime)] underline"
+              >
+                complete image-to-Minecraft guide
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-8 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+          Every page runs the same local converter, preset for what you bring
+          it. Bring a{' '}
           <a
             href="/jpg-to-pixel-art"
             className="text-[var(--pixel-lime)] underline"
@@ -447,16 +588,19 @@ export default function Home() {
       <JsonLd
         data={buildWebAppSchema({
           image: 'https://pixvael.com/hero-portrait-v2.jpg',
+          description:
+            'Free online pixel art tools: convert any image or photo to pixel art, and rebuild photos as Minecraft pixel art. Runs in your browser.',
+          featureList: [
+            'Image to pixel art converter',
+            'Minecraft pixel art generator',
+            'PNG / JPG / WebP presets',
+            'Retro and Game Boy palettes',
+            'Local processing, no upload',
+          ],
         })}
       />
       <JsonLd data={buildHowToSchema(HOME_HOW_TO)} />
       <JsonLd data={buildFaqSchema(faqs)} />
-      <JsonLd
-        data={buildBreadcrumbSchema([
-          { name: 'Home', url: 'https://pixvael.com' },
-          { name: 'Image to Pixel Art', url: 'https://pixvael.com' },
-        ])}
-      />
     </div>
   );
 }

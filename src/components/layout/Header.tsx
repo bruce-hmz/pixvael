@@ -36,20 +36,11 @@ export function Header() {
 
         <nav className="hidden items-center gap-8 text-sm text-[var(--pixel-lime)] md:flex">
           <Link
-            href="/#tool"
-            aria-current={pathname === '/' ? 'page' : undefined}
-            onClick={() => {
-              if (isMinecraftPage) {
-                trackEvent(PIXVAEL_EVENTS.modeSwitched, {
-                  from_step: 'minecraft',
-                  to_step: 'pixel',
-                  switch_location: 'header_nav',
-                });
-              }
-            }}
+            href="/image-to-pixel-art"
+            aria-current={pathname === '/image-to-pixel-art' ? 'page' : undefined}
             className="hover:text-[var(--pixel-cyan)] aria-[current=page]:text-[var(--paper)]"
           >
-            Tool
+            Image to Pixel Art
           </Link>
           <Link
             href="/minecraft-pixel-art"
@@ -65,7 +56,7 @@ export function Header() {
             }}
             className="hover:text-[var(--pixel-cyan)] aria-[current=page]:text-[var(--paper)]"
           >
-            Minecraft mode
+            Minecraft Pixel Art
           </Link>
         </nav>
 

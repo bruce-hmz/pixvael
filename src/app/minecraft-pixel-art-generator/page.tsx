@@ -62,6 +62,7 @@ export default function MinecraftPixelArtGeneratorPage() {
   return (
     <PixelLanding
       eyebrow="/ minecraft pixel art generator"
+      breadcrumbs={[{ name: 'Minecraft Pixel Art', href: '/minecraft-pixel-art' }]}
       title="Minecraft pixel art generator"
       description="Convert any image into Minecraft blocks, edit it cell by cell, then export a .schematic, blueprint, and material list — entirely in your browser."
       defaultPixelSize={12}
@@ -272,7 +273,8 @@ export default function MinecraftPixelArtGeneratorPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Minecraft Pixel Art', url: 'https://pixvael.com/minecraft-pixel-art' },
           { name: 'Minecraft Pixel Art Generator', url: pageUrl },
         ])}
       />

@@ -55,6 +55,7 @@ export default function ImageToMinecraftPixelArtPage() {
   return (
     <PixelLanding
       eyebrow="/ image to minecraft pixel art"
+      breadcrumbs={[{ name: 'Minecraft Pixel Art', href: '/minecraft-pixel-art' }]}
       title="Image to Minecraft pixel art"
       description="Drop an image and get a Minecraft block plan instantly. Choose the grid width, preview build lines, and export a material list entirely in your browser."
       defaultPixelSize={12}
@@ -202,7 +203,8 @@ export default function ImageToMinecraftPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Minecraft Pixel Art', url: 'https://pixvael.com/minecraft-pixel-art' },
           { name: 'Image to Minecraft Pixel Art', url: pageUrl },
         ])}
       />

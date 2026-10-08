@@ -45,6 +45,7 @@ export default function WebpToPixelArtPage() {
   return (
     <PixelLanding
       eyebrow="/ webp to pixel art"
+      breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="WebP to pixel art"
       description="Drop a WebP image and get pixel art in seconds. Tune the block size and palette, add dithering, and export a crisp PNG — all locally in your browser."
       defaultPixelSize={8}
@@ -105,6 +106,15 @@ export default function WebpToPixelArtPage() {
             build planner
           </a>{' '}
           maps any of these to blocks with material counts.
+         For the full walkthrough of every
+          control — grids, palettes, dithering, and export — start with the{' '}
+          <a
+            href="/image-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            image to pixel art
+          </a>{' '}
+          guide.
         </p>
       </section>
 
@@ -144,7 +154,8 @@ export default function WebpToPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Image to Pixel Art', url: 'https://pixvael.com/image-to-pixel-art' },
           { name: 'WebP to Pixel Art', url: pageUrl },
         ])}
       />

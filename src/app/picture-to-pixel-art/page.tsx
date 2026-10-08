@@ -45,6 +45,7 @@ export default function PictureToPixelArtPage() {
   return (
     <PixelLanding
       eyebrow="/ picture to pixel art"
+      breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="Picture to pixel art"
       description="Turn any picture into pixel art in seconds. Tune the block size, palette, and dithering to control the look, then export a crisp PNG — all locally in your browser."
       defaultPixelSize={8}
@@ -169,7 +170,8 @@ export default function PictureToPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Image to Pixel Art', url: 'https://pixvael.com/image-to-pixel-art' },
           { name: 'Picture to Pixel Art', url: pageUrl },
         ])}
       />

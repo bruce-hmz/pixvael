@@ -16,10 +16,10 @@ export function Footer() {
           aria-label="Pixvael tools"
         >
           <Link
-            href="/#tool"
+            href="/image-to-pixel-art"
             className="hover:text-[var(--pixel-lime)]"
           >
-            Pixel tool
+            Image converter
           </Link>
           <Link
             href="/minecraft-pixel-art#tool"

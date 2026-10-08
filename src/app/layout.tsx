@@ -10,17 +10,19 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistratio
 const GA_MEASUREMENT_ID = 'G-9J8DN1GE8J';
 
 export const metadata: Metadata = {
+  // 首页(品牌+品类)与内页(关键词+站名)的分工:首页潜在用户搜的是品牌/品类,
+  // title 站名在前;内页继续用 template '%s | Pixvael' 打具体关键词
   title: {
-    default: 'Image to Pixel Art — Free Online Converter | Pixvael',
+    default: 'Pixvael — Free Online Pixel Art Tools',
     template: '%s | Pixvael',
   },
   description:
-    'Free image to pixel art converter. Turn any photo into pixel art online — no signup, no upload. Minecraft, 8-bit, Game Boy palettes, sharp PNG export.',
+    'Free pixel art tools by Pixvael: convert any image, photo, JPG or PNG into pixel art, and rebuild photos as Minecraft pixel art. Runs in your browser — no signup, no upload.',
   metadataBase: new URL('https://pixvael.com'),
   openGraph: {
-    title: 'Image to Pixel Art — Free Online Converter | Pixvael',
+    title: 'Pixvael — Free Online Pixel Art Tools',
     description:
-      'Free image to pixel art converter. Turn any photo into pixel art online — no signup, no upload.',
+      'Convert any image, photo, JPG or PNG into pixel art, and rebuild photos as Minecraft pixel art. Free, in-browser, no signup.',
     url: 'https://pixvael.com',
     siteName: 'Pixvael',
     type: 'website',
@@ -28,9 +30,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Image to Pixel Art — Free Online Converter | Pixvael',
+    title: 'Pixvael — Free Online Pixel Art Tools',
     description:
-      'Free image to pixel art converter. Turn any photo into pixel art online — no signup, no upload.',
+      'Convert any image, photo, JPG or PNG into pixel art, and rebuild photos as Minecraft pixel art. Free, in-browser, no signup.',
     images: ['/hero-portrait-v2.jpg'],
   },
 };

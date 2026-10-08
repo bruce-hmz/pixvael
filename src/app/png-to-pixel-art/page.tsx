@@ -45,6 +45,7 @@ export default function PngToPixelArtPage() {
   return (
     <PixelLanding
       eyebrow="/ png to pixel art"
+      breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="PNG to pixel art"
       description="Drop a PNG and get pixel art with transparency intact. Fine-tune block size and palette for logos, sprites, and stickers — 100% in your browser."
       defaultPixelSize={4}
@@ -108,6 +109,15 @@ export default function PngToPixelArtPage() {
             build planner
           </a>{' '}
           to map it to blocks and count materials.
+         For the full walkthrough of every
+          control — grids, palettes, dithering, and export — start with the{' '}
+          <a
+            href="/image-to-pixel-art"
+            className="text-[var(--pixel-lime)] underline"
+          >
+            image to pixel art
+          </a>{' '}
+          guide.
         </p>
       </section>
 
@@ -146,7 +156,8 @@ export default function PngToPixelArtPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Image to Pixel Art', url: 'https://pixvael.com/image-to-pixel-art' },
           { name: 'PNG to Pixel Art', url: pageUrl },
         ])}
       />

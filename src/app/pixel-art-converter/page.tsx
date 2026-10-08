@@ -45,6 +45,7 @@ export default function PixelArtConverterPage() {
   return (
     <PixelLanding
       eyebrow="/ pixel art converter"
+      breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="Pixel art converter"
       description="Convert any image to pixel art right here. Set the grid, pick a palette, toggle dithering, and export a crisp PNG — free, private, no signup."
       defaultPixelSize={12}
@@ -194,7 +195,8 @@ export default function PixelArtConverterPage() {
       />
       <JsonLd
         data={buildBreadcrumbSchema([
-          { name: 'Pixvael', url: 'https://pixvael.com' },
+          { name: 'Home', url: 'https://pixvael.com' },
+          { name: 'Image to Pixel Art', url: 'https://pixvael.com/image-to-pixel-art' },
           { name: 'Pixel Art Converter', url: pageUrl },
         ])}
       />

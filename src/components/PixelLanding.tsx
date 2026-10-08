@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { HowToSteps } from '@/components/HowToSteps';
 import { MinecraftWorkflowLink } from '@/components/MinecraftWorkflowLink';
 import { PixelConverter } from '@/components/PixelConverter';
@@ -19,6 +20,8 @@ type PixelLandingProps = {
   eyebrow: string;
   title: string;
   description: string;
+  // 上级链(不含 Home):如 Minecraft 族子页传 [{ name: 'Minecraft Pixel Art', href: '/minecraft-pixel-art' }]
+  breadcrumbs?: { name: string; href: string }[];
   defaultPixelSize?: number;
   defaultPaletteId?: string;
   mode?: 'pixel' | 'minecraft';
@@ -35,6 +38,7 @@ export function PixelLanding({
   eyebrow,
   title,
   description,
+  breadcrumbs,
   defaultPixelSize = 12,
   defaultPaletteId = 'full',
   mode = 'pixel',
@@ -60,6 +64,27 @@ export function PixelLanding({
       <section className="rail-frame grid gap-8 px-4 py-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
         <div className="contents lg:sticky lg:top-28 lg:block">
           <div className="order-1">
+            {breadcrumbs && breadcrumbs.length > 0 && (
+              <nav
+                aria-label="Breadcrumb"
+                className="font-mono text-xs text-[var(--paper-muted)]"
+              >
+                <Link href="/" className="hover:text-[var(--pixel-lime)]">
+                  Home
+                </Link>
+                {breadcrumbs.map((crumb) => (
+                  <span key={crumb.href}>
+                    {' / '}
+                    <Link
+                      href={crumb.href}
+                      className="hover:text-[var(--pixel-lime)]"
+                    >
+                      {crumb.name}
+                    </Link>
+                  </span>
+                ))}
+              </nav>
+            )}
             <p className="terminal-label">{eyebrow}</p>
             <h1 className="crt-title mt-5 max-w-3xl break-words text-[clamp(3.2rem,7vw,6rem)]">
               {title}
