@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+export const dynamic = 'force-static';
+
 // PWA Web App Manifest。favicon / icon / apple-icon 走 app 目录文件约定,
 // 这里只管「添加到主屏 / 安装为应用」所需的元数据与启动图标(android-chrome)。
 // theme_color / background_color 用站点深色背景,与 logo 深色底一致,避免白屏闪烁。

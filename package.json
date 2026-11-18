@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "preview": "npm run build && npx wrangler pages dev ./out",
+    "deploy": "npm run build && CLOUDFLARE_ACCOUNT_ID=348735f3451f76b0c9b4d551fa6f0bfc npx wrangler pages deploy ./out --project-name pixvael --branch main",
     "lint": "eslint",
     "test": "vitest run",
     "check": "npm run test && npm run lint && npm run build"
