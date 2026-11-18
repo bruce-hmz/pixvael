@@ -60,7 +60,9 @@ export default function RootLayout({
       className="h-full antialiased"
     >
       <body className="flex min-h-full flex-col">
-        {process.env.NODE_ENV === 'production' && (
+        {/* 预览部署设 NEXT_PUBLIC_DISABLE_ANALYTICS=1,不往正式 GA 里写数据 */}
+        {process.env.NODE_ENV === 'production' &&
+          process.env.NEXT_PUBLIC_DISABLE_ANALYTICS !== '1' && (
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

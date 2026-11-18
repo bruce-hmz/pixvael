@@ -1,6 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelStudio } from '@/components/studio/PixelStudio';
+import {
+  StudioFaq,
+  StudioHero,
+  StudioHowTo,
+  StudioInfoGrid,
+  StudioPage,
+  StudioProse,
+} from '@/components/studio/StudioSections';
+import type { HowTo } from '@/lib/structured-data';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -42,32 +51,33 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image', images: ['/hero-portrait-v2.jpg'] },
 };
 
+const howTo: HowTo = {
+  name: 'How to convert an image to pixel art',
+  steps: [
+    { name: 'Drop in your image', text: 'Load a JPG, PNG, or WebP straight from your device. The conversion runs locally, so the file never leaves your browser.' },
+    { name: 'Set the grid size', text: 'Use 8-16 blocks to keep facial features on portraits, or 24-32 blocks for logos and icons that need harder edges.' },
+    { name: 'Pick a palette and dithering', text: 'Keep full color for realism, snap to PICO-8 or Game Boy for a retro look, and toggle Floyd-Steinberg dithering to recover shading.' },
+    { name: 'Export the PNG', text: 'Download a scaled PNG — output uses nearest-neighbor scaling, so block edges stay crisp at any size.' },
+  ],
+};
+
 export default function ImageToPixelArtPage() {
   return (
-    <PixelLanding
-      eyebrow="/ image to pixel art"
-      title="Image to pixel art"
-      description="Convert any image to pixel art in your browser. Set the grid size, pick a palette, toggle dithering, and download a sharp PNG — no signup, no upload."
-      defaultPixelSize={12}
-      defaultPaletteId="full"
-      facts={['any image format', 'local conversion', 'PNG export']}
-      howTo={{
-        name: 'How to convert an image to pixel art',
-        steps: [
-          { name: 'Drop in your image', text: 'Load a JPG, PNG, or WebP straight from your device. The conversion runs locally, so the file never leaves your browser.' },
-          { name: 'Set the grid size', text: 'Use 8-16 blocks to keep facial features on portraits, or 24-32 blocks for logos and icons that need harder edges.' },
-          { name: 'Pick a palette and dithering', text: 'Keep full color for realism, snap to PICO-8 or Game Boy for a retro look, and toggle Floyd-Steinberg dithering to recover shading.' },
-          { name: 'Export the PNG', text: 'Download a scaled PNG — output uses nearest-neighbor scaling, so block edges stay crisp at any size.' },
-        ],
-      }}
-      faqs={faqs}
-    >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">what happens</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          What converting an image to pixel art actually does
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+    <StudioPage>
+      <StudioHero
+        title="Image to pixel art"
+        description="Convert any image to pixel art in your browser. Set the grid size, pick a palette, toggle dithering, and download a sharp PNG — no signup, no upload."
+        facts={['any image format', 'local conversion', 'PNG export']}
+        breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
+        note="Images stay on this device; analytics record tool actions, never image contents or file names."
+      />
+
+      <PixelStudio defaultPixelSize={12} defaultPaletteId="full" />
+
+      <StudioHowTo howTo={howTo} />
+
+      <StudioProse title="What converting an image to pixel art actually does">
+        <p>
           Pixel art is an image rebuilt from a coarse grid of flat-colored
           squares. Pixvael slices your source into blocks, averages each block
           down to a single color, and redraws the picture from those cells —
@@ -83,16 +93,12 @@ export default function ImageToPixelArtPage() {
           uploaded, which is also why the preview responds the moment you move
           a slider.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">starting points</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          One converter, a page per source
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="One converter, a page per source">
+        <p>
           The tool on this page is the same engine that powers the{' '}
-          <Link href="/" className="text-[var(--pixel-lime)] underline">
+          <Link href="/">
             Pixvael home converter
           </Link>
           , preset for general images — open any file and start from the
@@ -100,7 +106,7 @@ export default function ImageToPixelArtPage() {
           The{' '}
           <a
             href="/pixel-art-converter"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             pixel art converter
           </a>{' '}
@@ -110,14 +116,14 @@ export default function ImageToPixelArtPage() {
           recipes on the{' '}
           <a
             href="/photo-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             photo converter
           </a>
           ; screenshots and mixed sources are covered on the{' '}
           <a
             href="/picture-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             picture converter
           </a>
@@ -125,28 +131,28 @@ export default function ImageToPixelArtPage() {
           the{' '}
           <a
             href="/jpg-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             JPG
           </a>
           ,{' '}
           <a
             href="/png-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             PNG
           </a>
           , and{' '}
           <a
             href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             WebP
           </a>{' '}
           pages. Builds destined for a block game start with the{' '}
           <a
             href="/image-to-minecraft-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image-to-Minecraft flow
           </a>
@@ -155,20 +161,16 @@ export default function ImageToPixelArtPage() {
           project with native exports and block editing, use the{' '}
           <a
             href="/minecraft-pixel-art-generator"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             Minecraft pixel art generator
           </a>
           .
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">workflow</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          Convert an image in three steps
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="Convert an image in three steps">
+        <p>
           First, drop in an image — drag it onto the canvas or pick a file;
           JPG, PNG, and WebP all work, and transparency carries through. Second,
           tune the look: adjust the grid size until the subject reads clearly,
@@ -177,9 +179,8 @@ export default function ImageToPixelArtPage() {
           hard-edged PNG that scales without blur, ready for a game engine, an
           avatar, or print.
         </p>
-      </section>
-
-      <InfoGrid
+      </StudioProse>
+      <StudioInfoGrid
         items={[
           {
             label: 'portraits',
@@ -198,6 +199,7 @@ export default function ImageToPixelArtPage() {
           },
         ]}
       />
+
       <JsonLd data={buildFaqSchema(faqs)} />
       <JsonLd
         data={buildWebAppSchema({
@@ -220,6 +222,7 @@ export default function ImageToPixelArtPage() {
           { name: 'Image to Pixel Art', url: pageUrl },
         ])}
       />
-    </PixelLanding>
+      <StudioFaq faqs={faqs} />
+    </StudioPage>
   );
 }

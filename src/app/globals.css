@@ -44,11 +44,76 @@
   --glow: 0 0 7px rgba(51, 255, 51, 0.72);
 }
 
+/* 新版"工作室"设计(2026-11 改版):浅色默认、跟随系统深色。
+   只作用于带 data-theme="studio" 的页面,逐页迁移;旧页面仍是 CRT 终端风。 */
+:root {
+  --st-paper: #f5f3ee;
+  --st-surface: #ffffff;
+  --st-sunken: #f1efea;
+  --st-line: #e3dfd7;
+  --st-line-strong: #d6d1c6;
+  --st-ink: #17171a;
+  --st-ink-2: #5e5d66;
+  --st-ink-3: #6a6972;
+  --st-accent: #3346f0;
+  --st-accent-hover: #2536d6;
+  --st-accent-text: #3346f0;
+  --st-accent-tint: #eef0fe;
+  --st-well: #eeebe4;
+  --st-well-check: #e4e0d8;
+  --st-invert: #17171a;
+  --st-on-invert: #ffffff;
+  --st-track: #cfcac0;
+  --st-danger: #b42318;
+  --st-danger-tint: #fdeceb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --st-paper: #111113;
+    --st-surface: #1a1a1d;
+    --st-sunken: #232327;
+    --st-line: #2e2e33;
+    --st-line-strong: #3a3a40;
+    --st-ink: #f1efea;
+    --st-ink-2: #a3a1aa;
+    --st-ink-3: #a3a1aa;
+    --st-accent: #3346f0;
+    --st-accent-hover: #4a5bff;
+    --st-accent-text: #8f9bff;
+    --st-accent-tint: #23264a;
+    --st-well: #1d1d21;
+    --st-well-check: #25252a;
+    --st-invert: #f1efea;
+    --st-on-invert: #17171a;
+    --st-track: #45454c;
+    --st-danger: #ff8a7a;
+    --st-danger-tint: #3a1d1a;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-st-paper: var(--st-paper);
+  --color-st-surface: var(--st-surface);
+  --color-st-sunken: var(--st-sunken);
+  --color-st-line: var(--st-line);
+  --color-st-line-strong: var(--st-line-strong);
+  --color-st-ink: var(--st-ink);
+  --color-st-ink-2: var(--st-ink-2);
+  --color-st-ink-3: var(--st-ink-3);
+  --color-st-accent: var(--st-accent);
+  --color-st-accent-hover: var(--st-accent-hover);
+  --color-st-accent-text: var(--st-accent-text);
+  --color-st-accent-tint: var(--st-accent-tint);
+  --color-st-invert: var(--st-invert);
+  --color-st-on-invert: var(--st-on-invert);
+  --color-st-track: var(--st-track);
+  --color-st-danger: var(--st-danger);
+  --color-st-danger-tint: var(--st-danger-tint);
 }
 
 body {
@@ -108,6 +173,32 @@ a {
   html {
     scroll-behavior: smooth;
   }
+}
+
+/* 工作室页面:关掉 CRT 扫描线/暗角覆盖层(它们盖在用户的预览图上),换浅色底和无衬线正文。 */
+html:has([data-theme="studio"]) {
+  color-scheme: light dark;
+}
+
+html:has([data-theme="studio"]) body {
+  background: var(--st-paper);
+  color: var(--st-ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  padding-bottom: 0;
+}
+
+html:has([data-theme="studio"]) body::before,
+html:has([data-theme="studio"]) body::after {
+  display: none;
+}
+
+html:has([data-theme="studio"]) ::selection {
+  background: var(--st-accent);
+  color: #ffffff;
+}
+
+html:has([data-theme="studio"]) :is(button, input, select, a, summary, label) {
+  outline-color: var(--st-accent-text);
 }
 
 @layer components {
@@ -298,6 +389,63 @@ a {
 
   .range-control {
     accent-color: var(--pixel-lime);
+  }
+
+  /* 工作室组件 */
+  .st-well {
+    background-color: var(--st-well);
+    background-image: conic-gradient(
+      var(--st-well-check) 25%,
+      transparent 0 50%,
+      var(--st-well-check) 0 75%,
+      transparent 0
+    );
+    background-size: 20px 20px;
+  }
+
+  /* 主按钮的 4px 台阶角:像素感只放在这里。焦点框画在外层 .st-px-wrap 上,不被裁掉。 */
+  .st-px {
+    clip-path: polygon(
+      0 4px, 4px 4px, 4px 0,
+      calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+      100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+      4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
+    );
+  }
+
+  .st-px-wrap:has(:focus-visible) {
+    outline: 2px solid var(--st-accent-text);
+    outline-offset: 3px;
+  }
+
+  .st-range {
+    accent-color: var(--st-accent);
+  }
+
+  .st-compare {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: ew-resize;
+    opacity: 0;
+  }
+
+  .st-compare-wrap:has(.st-compare:focus-visible) {
+    outline: 3px solid var(--st-accent-text);
+    outline-offset: 3px;
+  }
+
+  .st-faq summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .st-faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .st-faq[open] .st-chevron {
+    transform: rotate(180deg);
   }
 }
 
