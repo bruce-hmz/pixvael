@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelLanding } from '@/components/PixelLanding';
+import { StudioInfoGrid, StudioProse } from '@/components/studio/StudioSections';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
 export default function PhotoToPixelArtPage() {
   return (
     <PixelLanding
+      variant="studio"
       eyebrow="/ photo to pixel art"
       breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="Photo to pixel art"
@@ -62,12 +64,8 @@ export default function PhotoToPixelArtPage() {
       }}
       faqs={faqs}
     >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">tips</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          Photo to pixel art by subject
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+      <StudioProse title="Photo to pixel art by subject">
+        <p>
           The right settings depend on what is in the photo. Portraits keep
           their likeness at 8-16 blocks wide — start with the 8-bit (PICO-8)
           palette and dithering on, which recovers shading in the face without
@@ -79,14 +77,10 @@ export default function PhotoToPixelArtPage() {
           However you start, turning a photo into pixel art comes down to the
           same three dials — block size, palette, and dithering.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">workflow</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          From photo to finished pixel art in three steps
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="From photo to finished pixel art in three steps">
+        <p>
           First, choose a photo with one clear subject and a simple background —
           it will always convert better than a busy scene. Second, set the block
           size by the detail you want: small blocks preserve features, large
@@ -96,21 +90,21 @@ export default function PhotoToPixelArtPage() {
           identically; use the{' '}
           <a
             href="/jpg-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             JPG
           </a>{' '}
           or{' '}
           <a
             href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             WebP
           </a>{' '}
           converters for format-specific tips, and the{' '}
           <a
             href="/minecraft-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             Minecraft planner
           </a>{' '}
@@ -119,15 +113,15 @@ export default function PhotoToPixelArtPage() {
           control — grids, palettes, dithering, and export — start with the{' '}
           <a
             href="/image-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image to pixel art
           </a>{' '}
           guide.
         </p>
-      </section>
+      </StudioProse>
 
-      <InfoGrid
+      <StudioInfoGrid
         items={[
           {
             label: 'portrait',

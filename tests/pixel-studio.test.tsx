@@ -79,3 +79,24 @@ describe('isStudioPath', () => {
     expect(isStudioPath(null)).toBe(false);
   });
 });
+
+describe('PixelLanding variants', () => {
+  it('renders the studio converter when a pixel page opts in', async () => {
+    const { PixelLanding } = await import('../src/components/PixelLanding');
+    const { container } = render(
+      <PixelLanding variant="studio" eyebrow="/ test" title="Test page" description="Desc" />,
+    );
+    expect(container.querySelector('[data-theme="studio"]')).not.toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Test page' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /upload your image/i })).toBeInTheDocument();
+  });
+
+  it('keeps the classic layout by default (homepage and Minecraft pages)', async () => {
+    const { PixelLanding } = await import('../src/components/PixelLanding');
+    const { container } = render(
+      <PixelLanding eyebrow="/ test" title="Test page" description="Desc" />,
+    );
+    expect(container.querySelector('[data-theme="studio"]')).toBeNull();
+    expect(screen.getByText('/ open tool')).toBeInTheDocument();
+  });
+});

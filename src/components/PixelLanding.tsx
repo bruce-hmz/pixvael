@@ -3,6 +3,13 @@ import Link from 'next/link';
 import { HowToSteps } from '@/components/HowToSteps';
 import { MinecraftWorkflowLink } from '@/components/MinecraftWorkflowLink';
 import { PixelConverter } from '@/components/PixelConverter';
+import { PixelStudio } from '@/components/studio/PixelStudio';
+import {
+  StudioFaq,
+  StudioHero,
+  StudioHowTo,
+  StudioPage,
+} from '@/components/studio/StudioSections';
 import type { HowTo } from '@/lib/structured-data';
 
 export type FaqItem = {
@@ -32,6 +39,8 @@ type PixelLandingProps = {
   children?: ReactNode;
   faqs?: FaqItem[];
   howTo?: HowTo;
+  // 'studio' = 2026-11 新版设计(只支持 pixel 模式);页面路径还要加进 lib/studio.ts 的 STUDIO_PATHS
+  variant?: 'classic' | 'studio';
 };
 
 export function PixelLanding({
@@ -58,7 +67,29 @@ export function PixelLanding({
   children,
   faqs,
   howTo,
+  variant = 'classic',
 }: PixelLandingProps) {
+  if (variant === 'studio' && mode === 'pixel') {
+    return (
+      <StudioPage>
+        <StudioHero
+          title={title}
+          description={description}
+          facts={facts}
+          breadcrumbs={breadcrumbs}
+          note="Images stay on this device; analytics record tool actions, never image contents or file names."
+        />
+        <PixelStudio
+          defaultPixelSize={defaultPixelSize}
+          defaultPaletteId={defaultPaletteId}
+        />
+        {howTo && <StudioHowTo howTo={howTo} />}
+        {children}
+        {faqs && <StudioFaq faqs={faqs} />}
+      </StudioPage>
+    );
+  }
+
   return (
     <div className="page-shell">
       <section className="rail-frame grid gap-8 px-4 py-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">

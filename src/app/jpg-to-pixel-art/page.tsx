@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelLanding } from '@/components/PixelLanding';
+import { StudioInfoGrid, StudioProse } from '@/components/studio/StudioSections';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
 export default function JpgToPixelArtPage() {
   return (
     <PixelLanding
+      variant="studio"
       eyebrow="/ jpg to pixel art"
       breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="JPG to pixel art"
@@ -62,12 +64,8 @@ export default function JpgToPixelArtPage() {
       }}
       faqs={faqs}
     >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">tips</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          Getting clean pixel art from a JPG photo
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+      <StudioProse title="Getting clean pixel art from a JPG photo">
+        <p>
           JPG photos are the classic input for pixel art because they already
           contain smooth gradients. Start with a block size of 8 for bold
           silhouettes, or 4 if you want to keep facial features and small
@@ -77,28 +75,24 @@ export default function JpgToPixelArtPage() {
           dithering on: the 16-color limit forces clean color bands and the
           error diffusion recovers shading that plain quantization would lose.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">when to use</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          JPG vs PNG vs WebP for pixel art
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="JPG vs PNG vs WebP for pixel art">
+        <p>
           Every format converts, but they behave differently. JPG is the best
           match for photos: it compresses color smoothly, and small artifacts
           disappear once you downsample to blocks. If your source is a logo or
           sprite with transparency, use the{' '}
           <a
             href="/png-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             PNG converter
           </a>{' '}
           instead — it preserves the alpha channel. For modern web images, the{' '}
           <a
             href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             WebP converter
           </a>{' '}
@@ -106,7 +100,7 @@ export default function JpgToPixelArtPage() {
           build, use the{' '}
           <a
             href="/minecraft-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             Minecraft build planner
           </a>{' '}
@@ -115,15 +109,15 @@ export default function JpgToPixelArtPage() {
           control — grids, palettes, dithering, and export — start with the{' '}
           <a
             href="/image-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image to pixel art
           </a>{' '}
           guide.
         </p>
-      </section>
+      </StudioProse>
 
-      <InfoGrid
+      <StudioInfoGrid
         items={[
           {
             label: 'blocks',

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelLanding } from '@/components/PixelLanding';
+import { StudioInfoGrid, StudioProse } from '@/components/studio/StudioSections';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
 export default function WebpToPixelArtPage() {
   return (
     <PixelLanding
+      variant="studio"
       eyebrow="/ webp to pixel art"
       breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="WebP to pixel art"
@@ -62,12 +64,8 @@ export default function WebpToPixelArtPage() {
       }}
       faqs={faqs}
     >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">tips</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          Pixel art from WebP: the web-native workflow
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+      <StudioProse title="Pixel art from WebP: the web-native workflow">
+        <p>
           WebP is the most common format on the modern web — screenshots,
           hero images, and social media graphics are often WebP. Because it is
           decoded locally, you can convert anything you can drag in, including
@@ -75,33 +73,29 @@ export default function WebpToPixelArtPage() {
           bold pixel art or 4 to keep facial detail, and add dithering when the
           source has smooth gradients that would otherwise band.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">when to use</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          WebP for web graphics, PNG for transparency, JPG for photos
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="WebP for web graphics, PNG for transparency, JPG for photos">
+        <p>
           Reach for this WebP converter when your source came from the web —
           screenshots, downloaded art, browser-saved images. Use the{' '}
           <a
             href="/png-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             PNG converter
           </a>{' '}
           for logos and sprites with transparency, and the{' '}
           <a
             href="/jpg-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             JPG converter
           </a>{' '}
           for classic photo uploads. Building in Minecraft? The{' '}
           <a
             href="/minecraft-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             build planner
           </a>{' '}
@@ -110,15 +104,15 @@ export default function WebpToPixelArtPage() {
           control — grids, palettes, dithering, and export — start with the{' '}
           <a
             href="/image-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image to pixel art
           </a>{' '}
           guide.
         </p>
-      </section>
+      </StudioProse>
 
-      <InfoGrid
+      <StudioInfoGrid
         items={[
           {
             label: 'source',

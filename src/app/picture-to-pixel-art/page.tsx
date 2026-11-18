@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelLanding } from '@/components/PixelLanding';
+import { StudioInfoGrid, StudioProse } from '@/components/studio/StudioSections';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
 export default function PictureToPixelArtPage() {
   return (
     <PixelLanding
+      variant="studio"
       eyebrow="/ picture to pixel art"
       breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="Picture to pixel art"
@@ -62,12 +64,8 @@ export default function PictureToPixelArtPage() {
       }}
       faqs={faqs}
     >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">how it works</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          How a picture becomes pixel art
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+      <StudioProse title="How a picture becomes pixel art">
+        <p>
           Pixel art conversion is really three steps. First, downsampling folds
           each block of pixels into one average color — the block size you pick
           decides how chunky the result is. Second, palette quantization maps
@@ -78,47 +76,43 @@ export default function PictureToPixelArtPage() {
           neighboring blocks, which is what keeps smooth gradients from turning
           into harsh color bands.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">when to use</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          Every source, one converter
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="Every source, one converter">
+        <p>
           Whether your source is a JPG, PNG, or WebP, the same pipeline applies
           — format-specific notes live on the{' '}
           <a
             href="/jpg-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             JPG
           </a>
           ,{' '}
           <a
             href="/png-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             PNG
           </a>{' '}
           (transparency preserved), and{' '}
           <a
             href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             WebP
           </a>{' '}
           pages. Photos deserve the subject-based guidance on the{' '}
           <a
             href="/photo-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             photo converter
           </a>
           . And if your picture is heading into Minecraft, the{' '}
           <a
             href="/minecraft-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             build planner
           </a>{' '}
@@ -126,15 +120,15 @@ export default function PictureToPixelArtPage() {
           tool overall? The general{' '}
           <a
             href="/image-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image to pixel art
           </a>{' '}
           guide explains every control from first principles.
         </p>
-      </section>
+      </StudioProse>
 
-      <InfoGrid
+      <StudioInfoGrid
         items={[
           {
             label: 'blocks',

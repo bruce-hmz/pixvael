@@ -1,6 +1,14 @@
 // 已迁移到新版"工作室"设计的页面。逐页迁移:页面自身加 data-theme="studio",
 // Header/Footer 按这里的列表切换成新样式。
-export const STUDIO_PATHS = new Set(['/image-to-pixel-art']);
+export const STUDIO_PATHS = new Set([
+  '/image-to-pixel-art',
+  '/photo-to-pixel-art',
+  '/picture-to-pixel-art',
+  '/jpg-to-pixel-art',
+  '/png-to-pixel-art',
+  '/webp-to-pixel-art',
+  '/pixel-art-converter',
+]);
 
 export function isStudioPath(pathname: string | null | undefined) {
   if (!pathname) return false;

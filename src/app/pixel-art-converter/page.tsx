@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelLanding } from '@/components/PixelLanding';
+import { StudioInfoGrid, StudioProse } from '@/components/studio/StudioSections';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
 export default function PixelArtConverterPage() {
   return (
     <PixelLanding
+      variant="studio"
       eyebrow="/ pixel art converter"
       breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="Pixel art converter"
@@ -62,12 +64,8 @@ export default function PixelArtConverterPage() {
       }}
       faqs={faqs}
     >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">what it does</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          Three dials and one promise
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+      <StudioProse title="Three dials and one promise">
+        <p>
           A pixel art converter restyles a photograph or screenshot into
           grid-based art, and Pixvael gives you three dials to steer it. Grid
           size decides how many blocks wide the piece is — the single biggest
@@ -81,32 +79,28 @@ export default function PixelArtConverterPage() {
           colors, no smoothing, every pixel a deliberate square — which is
           exactly what lets pixel art scale without turning to mush.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">formats and sources</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          Every format, one pipeline
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="Every format, one pipeline">
+        <p>
           JPG, PNG, and WebP convert through the same pipeline, and each{' '}
           <a
             href="/jpg-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             JPG
           </a>
           ,{' '}
           <a
             href="/png-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             PNG
           </a>
           , and{' '}
           <a
             href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             WebP
           </a>{' '}
@@ -114,14 +108,14 @@ export default function PixelArtConverterPage() {
           formats, the{' '}
           <a
             href="/photo-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             photo converter
           </a>{' '}
           handles portraits and pets, the{' '}
           <a
             href="/picture-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             picture converter
           </a>{' '}
@@ -129,36 +123,32 @@ export default function PixelArtConverterPage() {
           in the{' '}
           <a
             href="/image-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image to pixel art guide
           </a>
           . Building for a block game instead? The{' '}
           <a
             href="/minecraft-pixel-art-generator"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             Minecraft pixel art generator
           </a>{' '}
           maps converted art onto real block colors with a material list.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">workflow</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          Converting takes three moves
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="Converting takes three moves">
+        <p>
           Load the image — drag it onto the canvas or browse for the file;
           nothing uploads. Tune the dials — adjust the grid until the subject
           reads, pick a palette to taste, toggle dithering if gradients band.
           Export — download the PNG and use it anywhere: game sprites,
           avatars, wallpapers, cross-stitch charts.
         </p>
-      </section>
+      </StudioProse>
 
-      <InfoGrid
+      <StudioInfoGrid
         items={[
           {
             label: 'grids',

@@ -18,9 +18,10 @@ function trackMinecraftNav(isMinecraftPage: boolean) {
 function StudioHeader({ pathname }: { pathname: string }) {
   const isMinecraftPage = pathname.includes('minecraft');
   const links = [
-    { href: '/image-to-pixel-art', label: 'Image to Pixel Art', short: 'Pixel art', current: pathname === '/image-to-pixel-art' },
-    { href: '/minecraft-pixel-art', label: 'Minecraft', short: 'Minecraft', current: isMinecraftPage },
-    { href: '/tutorials', label: 'Tutorials', short: null, current: pathname.startsWith('/tutorials') },
+    // active = 当前栏目(高亮);aria-current 只给正好是这一页的链接
+    { href: '/image-to-pixel-art', label: 'Image to Pixel Art', short: 'Pixel art', active: isStudioPath(pathname) },
+    { href: '/minecraft-pixel-art', label: 'Minecraft', short: 'Minecraft', active: isMinecraftPage },
+    { href: '/tutorials', label: 'Tutorials', short: null, active: pathname.startsWith('/tutorials') },
   ];
 
   return (
@@ -52,13 +53,14 @@ function StudioHeader({ pathname }: { pathname: string }) {
             <Link
               key={link.href}
               href={link.href}
-              aria-current={link.current ? 'page' : undefined}
+              aria-current={pathname === link.href ? 'page' : undefined}
+              data-active={link.active ? 'true' : undefined}
               onClick={
                 link.href === '/minecraft-pixel-art'
                   ? () => trackMinecraftNav(isMinecraftPage)
                   : undefined
               }
-              className={`min-h-11 items-center whitespace-nowrap rounded-lg px-2.5 text-st-ink-2 transition-colors hover:text-st-ink aria-[current=page]:bg-st-accent-tint aria-[current=page]:text-st-accent-text sm:px-3 ${
+              className={`min-h-11 items-center whitespace-nowrap rounded-lg px-2.5 text-st-ink-2 transition-colors hover:text-st-ink data-[active=true]:bg-st-accent-tint data-[active=true]:text-st-accent-text sm:px-3 ${
                 link.short ? 'flex' : 'hidden sm:flex'
               }`}
             >

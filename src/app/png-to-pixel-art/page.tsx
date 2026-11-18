@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { InfoGrid, PixelLanding } from '@/components/PixelLanding';
+import { PixelLanding } from '@/components/PixelLanding';
+import { StudioInfoGrid, StudioProse } from '@/components/studio/StudioSections';
 import { JsonLd } from '@/components/JsonLd';
 import {
   buildBreadcrumbSchema,
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
 export default function PngToPixelArtPage() {
   return (
     <PixelLanding
+      variant="studio"
       eyebrow="/ png to pixel art"
       breadcrumbs={[{ name: 'Image to Pixel Art', href: '/image-to-pixel-art' }]}
       title="PNG to pixel art"
@@ -62,12 +64,8 @@ export default function PngToPixelArtPage() {
       }}
       faqs={faqs}
     >
-      <section className="pixel-panel mt-16 p-6 sm:p-8">
-        <p className="terminal-label">tips</p>
-        <h2 className="mt-4 text-3xl font-black text-[var(--paper)]">
-          Pixel art from PNGs: transparency is the superpower
-        </h2>
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-[var(--paper-muted)]">
+      <StudioProse title="Pixel art from PNGs: transparency is the superpower">
+        <p>
           A PNG can carry an alpha channel, and Pixvael respects it all the way
           through the pipeline: transparent edges are weighted correctly during
           downsampling, so you never get dirty gray halos, and the exported
@@ -76,27 +74,23 @@ export default function PngToPixelArtPage() {
           background. Use a small block size (4-8) for detailed artwork, and the
           full-color palette to preserve brand colors exactly.
         </p>
-      </section>
+      </StudioProse>
 
-      <section className="pixel-panel mt-8 p-6 sm:p-8">
-        <p className="terminal-label">when to use</p>
-        <h2 className="mt-4 text-2xl font-black text-[var(--paper)]">
-          Logos and sprites vs photo pixel art
-        </h2>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--paper-muted)]">
+      <StudioProse title="Logos and sprites vs photo pixel art">
+        <p>
           Start with a PNG whenever the source has transparency or flat color
           areas — a logo, an icon, a game sprite sheet. Photos usually arrive as
           JPG or WebP; the{' '}
           <a
             href="/jpg-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             JPG converter
           </a>{' '}
           and{' '}
           <a
             href="/webp-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             WebP converter
           </a>{' '}
@@ -104,7 +98,7 @@ export default function PngToPixelArtPage() {
           jump to the{' '}
           <a
             href="/minecraft-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             build planner
           </a>{' '}
@@ -113,15 +107,15 @@ export default function PngToPixelArtPage() {
           control — grids, palettes, dithering, and export — start with the{' '}
           <a
             href="/image-to-pixel-art"
-            className="text-[var(--pixel-lime)] underline"
+           
           >
             image to pixel art
           </a>{' '}
           guide.
         </p>
-      </section>
+      </StudioProse>
 
-      <InfoGrid
+      <StudioInfoGrid
         items={[
           {
             label: 'alpha',
