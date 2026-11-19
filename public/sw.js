@@ -1,7 +1,7 @@
 // Pixvael Service Worker
 // 策略:页面 network-first(离线回退缓存),同源静态资源 cache-first + 后台更新。
 // 不缓存跨域请求(GA 等)。开发环境不注册(见 ServiceWorkerRegistration)。
-const CACHE = 'pixvael-v1';
+const CACHE = 'pixvael-v2'; // v2: 2026-11-19 清空 v1 中的旧版 RSC 数据包（旧命名方案与新构建不匹配导致客户端跳转静默回退）
 
 self.addEventListener('install', () => {
   self.skipWaiting();
